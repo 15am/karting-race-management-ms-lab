@@ -14,6 +14,7 @@ This document defines the Stage 5 deployment runtime baseline for local executio
 - `deployment/docker-compose.yml`
 - `deployment/.env.example`
 - `deployment/scripts/validate-runtime.sh`
+- `deployment/scripts/apply-sql-scripts.sh`
 - `deployment/sql/**` (Stage 6 handoff scaffolding)
 
 ## Startup Validation
@@ -23,6 +24,10 @@ This document defines the Stage 5 deployment runtime baseline for local executio
 2. Update `SA_PASSWORD` in `deployment/.env` with a strong password.
 3. Validate startup configuration:
    `deployment/scripts/validate-runtime.sh`
+4. Start runtime:
+   `docker compose --env-file deployment/.env -f deployment/docker-compose.yml up -d`
+5. Apply schema and stored procedures:
+   `deployment/scripts/apply-sql-scripts.sh`
 
 The script validates compose rendering with `docker compose config` and fails if default SQL password remains.
 
@@ -32,9 +37,16 @@ The script validates compose rendering with `docker compose config` and fails if
 - `redis` includes a health check using `redis-cli ping`.
 - `api` startup waits for SQL Server and Redis healthy state through `depends_on` conditions.
 
-## SQL handoff
+## SQL runtime wiring
 
-SQL scaffolding and placeholders for the next stage are documented in:
+SQL assets are mounted read-only into the SQL Server container at `/opt/karting/sql`.
+
+Script execution order:
+
+1. `deployment/sql/schema/*.sql`
+2. `deployment/sql/stored-procedures/*.sql`
+
+SQL details are documented in:
 
 - `deployment/sql/README.md`
 - `docs/sql-stage-handoff.md`
