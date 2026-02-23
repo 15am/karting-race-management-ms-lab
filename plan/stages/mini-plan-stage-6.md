@@ -4,7 +4,7 @@
 StageNumber: 6
 StageName: sqlserver-stored-procedures-and-db-scripts
 BranchName: feature/sqlserver-stored-procedures-and-db-scripts
-Status: Active
+Status: Completed
 
 ---
 
