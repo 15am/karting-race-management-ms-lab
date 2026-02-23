@@ -23,6 +23,16 @@ if [[ ! -f "$ENV_TEMPLATE" ]]; then
   exit 1
 fi
 
+if [[ ! -d "$BASE_DIR/deployment/sql/schema" ]]; then
+  echo "Missing deployment/sql/schema directory."
+  exit 1
+fi
+
+if [[ ! -d "$BASE_DIR/deployment/sql/stored-procedures" ]]; then
+  echo "Missing deployment/sql/stored-procedures directory."
+  exit 1
+fi
+
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "Missing deployment/.env. Copy deployment/.env.example to deployment/.env first."
   exit 1
@@ -37,3 +47,4 @@ docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" config > "$RENDERED_FIL
 
 echo "Compose configuration is valid."
 echo "Rendered output: $RENDERED_FILE"
+echo "Next step: deployment/scripts/apply-sql-scripts.sh"
