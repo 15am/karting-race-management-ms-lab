@@ -1,0 +1,137 @@
+.app-shell {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.panel {
+  border: 1px solid var(--panel-border);
+  background: var(--panel-bg);
+  border-radius: 18px;
+  padding: 1.2rem;
+  box-shadow: var(--panel-shadow);
+}
+
+.panel--hero h1 {
+  margin: 0.35rem 0;
+  line-height: 1.12;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.search-form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.search-form label {
+  font-weight: 600;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.input-row input {
+  flex: 1 1 320px;
+  border: 1px solid var(--input-border);
+  border-radius: 10px;
+  min-height: 44px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  padding: 0 0.8rem;
+  font-size: 0.95rem;
+}
+
+.input-row button {
+  border: 0;
+  border-radius: 10px;
+  min-height: 44px;
+  padding: 0 1rem;
+  background: linear-gradient(130deg, #114f6b 0%, #1a87a2 100%);
+  color: #f6fbfc;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.input-row button:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.status {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.status--error {
+  color: #9d1b1b;
+  font-weight: 600;
+}
+
+.panel--meta {
+  font-size: 0.93rem;
+  color: var(--text-soft);
+}
+
+.results-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.6rem;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.92rem;
+}
+
+th {
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 0.8rem;
+}
+
+dt {
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+dd {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+}
