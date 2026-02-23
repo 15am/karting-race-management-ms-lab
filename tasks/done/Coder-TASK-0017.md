@@ -7,7 +7,7 @@ ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: backlog | ready | in-progress | review | done
+Status: done
 BlockedBy: None
 
 ---
@@ -67,3 +67,10 @@ Run docker compose config and verify generated configuration and environment tem
 > Updated by utilities/scripts/move-task.sh
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
+- [2026-02-23 22:34] MOVED backlog → ready | Next Stage 5 task
+
+- [2026-02-23 22:34] MOVED ready → in-progress | Starting compose hardening and deployment docs
+
+- [2026-02-23 22:37] MOVED in-progress → review | Compose hardening, validation script, and docs completed
+
+- [2026-02-23 22:42] MOVED review → done | Approved and completed
