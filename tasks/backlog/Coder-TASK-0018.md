@@ -1,26 +1,27 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0009
-Stage: Stage-3
+ID: Coder-TASK-0018
+Stage: Stage-5
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: backlog | ready | in-progress | review | done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Harden provider ready composition root and adapter registration boundaries
+Prepare SQL stage handoff with deployment sql directories and procedure script placeholders
 
 ---
 
 ## 3. Scope
 
 AllowedWriteTargets:
-- api/**
+- deployment/**
+- docs/**
 
 Read-only
 - context/**
@@ -51,7 +52,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Run dotnet build and dotnet test for impacted projects and add focused test coverage for the task objective.
+Verify SQL placeholder layout and script naming conventions align with upcoming SQL Server stage requirements.
 
 ---
 
@@ -66,4 +67,3 @@ Run dotnet build and dotnet test for impacted projects and add focused test cove
 > Updated by utilities/scripts/move-task.sh
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
-- [2026-02-23 21:40] MOVED backlog → review | Implemented and validated

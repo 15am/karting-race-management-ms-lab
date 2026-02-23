@@ -1,19 +1,19 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0011
+ID: Coder-TASK-0009
 Stage: Stage-3
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Finalize SQL mapping verification tests and extension point docs
+Harden provider ready composition root and adapter registration boundaries
 
 ---
 
@@ -21,7 +21,6 @@ Finalize SQL mapping verification tests and extension point docs
 
 AllowedWriteTargets:
 - api/**
-- docs/**
 
 Read-only
 - context/**
@@ -52,7 +51,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Run dotnet build and dotnet test for impacted projects and verify documentation aligns with implemented extension points.
+Run dotnet build and dotnet test for impacted projects and add focused test coverage for the task objective.
 
 ---
 
@@ -68,3 +67,5 @@ Run dotnet build and dotnet test for impacted projects and verify documentation 
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
 - [2026-02-23 21:40] MOVED backlog → review | Implemented and validated
+
+- [2026-02-23 22:17] MOVED review → done | Human approved and stage finalized

@@ -1,19 +1,19 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0013
-Stage: Stage-4
+ID: Coder-TASK-0011
+Stage: Stage-3
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Enable XML documentation file generation and warning visibility in api src projects
+Finalize SQL mapping verification tests and extension point docs
 
 ---
 
@@ -21,6 +21,7 @@ Enable XML documentation file generation and warning visibility in api src proje
 
 AllowedWriteTargets:
 - api/**
+- docs/**
 
 Read-only
 - context/**
@@ -51,7 +52,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Run dotnet build and dotnet test for impacted projects and verify no XML documentation warnings remain for api/src public and protected members.
+Run dotnet build and dotnet test for impacted projects and verify documentation aligns with implemented extension points.
 
 ---
 
@@ -66,4 +67,6 @@ Run dotnet build and dotnet test for impacted projects and verify no XML documen
 > Updated by utilities/scripts/move-task.sh
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
-- [2026-02-23 22:05] MOVED backlog → review | XML warning settings enabled in api src projects
+- [2026-02-23 21:40] MOVED backlog → review | Implemented and validated
+
+- [2026-02-23 22:17] MOVED review → done | Human approved and stage finalized

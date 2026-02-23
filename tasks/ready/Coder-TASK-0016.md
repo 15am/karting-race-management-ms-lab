@@ -1,25 +1,26 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0010
-Stage: Stage-3
+ID: Coder-TASK-0016
+Stage: Stage-5
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: ready
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Add stage3 integration tests for endpoint pipeline and cache invalidation
+Create deployment docker compose baseline with api sqlserver redis and apparmor unconfined
 
 ---
 
 ## 3. Scope
 
 AllowedWriteTargets:
+- deployment/**
 - api/**
 
 Read-only
@@ -51,7 +52,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Run dotnet build and dotnet test for impacted projects and add focused test coverage for the task objective.
+Validate docker compose configuration syntax and ensure service definitions include required runtime settings for this environment.
 
 ---
 
@@ -66,4 +67,4 @@ Run dotnet build and dotnet test for impacted projects and add focused test cove
 > Updated by utilities/scripts/move-task.sh
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
-- [2026-02-23 21:40] MOVED backlog → review | Implemented and validated
+- [2026-02-23 22:26] MOVED backlog → ready | Stage 5 entry task

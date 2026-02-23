@@ -1,19 +1,19 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0001
-Stage: Stage-1
+ID: Coder-TASK-0008
+Stage: Stage-2
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Scaffold dotnet10 multi project solution and enforce dependency direction in api
+Add stage2 unit tests for query handlers and cache hit miss behavior
 
 ---
 
@@ -66,6 +66,6 @@ Run dotnet build and dotnet test for impacted projects and add focused test cove
 > Updated by utilities/scripts/move-task.sh
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
-- [2026-02-23 21:24] MOVED backlog → ready | Stage 1 entry task
+- [2026-02-23 21:40] MOVED backlog → review | Implemented and validated
 
-- [2026-02-23 21:40] MOVED ready → review | Implemented and validated
+- [2026-02-23 22:17] MOVED review → done | Human approved and stage finalized

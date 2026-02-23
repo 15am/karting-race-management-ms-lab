@@ -1,19 +1,19 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0006
-Stage: Stage-2
+ID: Coder-TASK-0010
+Stage: Stage-3
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Define stage2 query ports and implement SQL Server stored procedure adapters
+Add stage3 integration tests for endpoint pipeline and cache invalidation
 
 ---
 
@@ -67,3 +67,5 @@ Run dotnet build and dotnet test for impacted projects and add focused test cove
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
 - [2026-02-23 21:40] MOVED backlog → review | Implemented and validated
+
+- [2026-02-23 22:17] MOVED review → done | Human approved and stage finalized

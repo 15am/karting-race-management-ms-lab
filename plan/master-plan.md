@@ -46,9 +46,6 @@ ReadOnly knowledge:
 - utilities/**
 - frontend/**
 
-Deferred until API core completion:
-- deployment/**
-
 ---
 
 ## 5. Stage Strategy
@@ -72,6 +69,10 @@ Planner MUST NOT implement code directly.
 - Stage-2: Race aggregate queries with stored procedures and distributed cache
 - Stage-3: Hardening, provider-readiness, and integration coverage
 - Stage-4: XML compliance and architecture documentation with PlantUML
+- Stage-5: Deployment runtime foundation (Docker Compose with SQL Server and Redis)
+- Stage-6: SQL Server scripts, stored procedures, and DB integration hardening
+- Stage-7: Minimal frontend for race results visualization
+- Stage-8: Final root documentation (README and NOTES) and closure validation
 
 Planner MAY refine stages but MUST preserve order.
 

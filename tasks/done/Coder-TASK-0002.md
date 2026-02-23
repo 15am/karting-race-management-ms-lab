@@ -1,19 +1,19 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0012
-Stage: Stage-4
+ID: Coder-TASK-0002
+Stage: Stage-1
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Add XML comments for all public and protected members in api src
+Implement domain value objects and entities with invariants for Driver Race and LapTime
 
 ---
 
@@ -51,7 +51,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Run dotnet build and dotnet test for impacted projects and verify no XML documentation warnings remain for api/src public and protected members.
+Run dotnet build and dotnet test for impacted projects and add focused test coverage for the task objective.
 
 ---
 
@@ -66,8 +66,6 @@ Run dotnet build and dotnet test for impacted projects and verify no XML documen
 > Updated by utilities/scripts/move-task.sh
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
-- [2026-02-23 21:56] MOVED backlog → ready | Stage 4 entry task
+- [2026-02-23 21:40] MOVED backlog → review | Implemented and validated
 
-- [2026-02-23 21:56] MOVED ready → in-progress | Starting XML documentation sweep
-
-- [2026-02-23 22:05] MOVED in-progress → review | XML docs sweep completed
+- [2026-02-23 22:17] MOVED review → done | Human approved and stage finalized

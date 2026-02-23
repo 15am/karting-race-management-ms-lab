@@ -1,26 +1,26 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0014
-Stage: Stage-4
+ID: Coder-TASK-0007
+Stage: Stage-2
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Expand docs and add PlantUML component sequence and data model diagrams
+Implement get aggregate endpoints with distributed cache mediation
 
 ---
 
 ## 3. Scope
 
 AllowedWriteTargets:
-- docs/**
+- api/**
 
 Read-only
 - context/**
@@ -51,7 +51,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Validate markdown links and ensure each PlantUML source is referenced by architecture documentation.
+Run dotnet build and dotnet test for impacted projects and add focused test coverage for the task objective.
 
 ---
 
@@ -66,4 +66,6 @@ Validate markdown links and ensure each PlantUML source is referenced by archite
 > Updated by utilities/scripts/move-task.sh
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
-- [2026-02-23 22:05] MOVED backlog → review | Architecture docs and PlantUML diagrams added
+- [2026-02-23 21:40] MOVED backlog → review | Implemented and validated
+
+- [2026-02-23 22:17] MOVED review → done | Human approved and stage finalized

@@ -1,0 +1,56 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: api/src/Karting.Api/Dockerfile
+    container_name: karting-api
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Database__Provider: SqlServer
+      ConnectionStrings__SqlServer: Server=sqlserver,1433;Database=KartingRaceManagement;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True
+    ports:
+      - "8080:8080"
+    depends_on:
+      - sqlserver
+      - redis
+    networks:
+      - karting-network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: karting-sqlserver
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - karting-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: karting-redis
+    security_opt:
+      - apparmor:unconfined
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - karting-network
+
+volumes:
+  sqlserver-data:
+  redis-data:
+
+networks:
+  karting-network:
+    driver: bridge
