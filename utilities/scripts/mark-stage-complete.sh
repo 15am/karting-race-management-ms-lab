@@ -1,0 +1,1 @@
+echo "$STAGE" > context/_last-completed-stage.md

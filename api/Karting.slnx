@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Karting.Api/Karting.Api.csproj" />
+    <Project Path="src/Karting.Application/Karting.Application.csproj" />
+    <Project Path="src/Karting.Domain/Karting.Domain.csproj" />
+    <Project Path="src/Karting.Infrastructure/Karting.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Karting.Api.IntegrationTests/Karting.Api.IntegrationTests.csproj" />
+    <Project Path="test/Karting.Application.Tests/Karting.Application.Tests.csproj" />
+    <Project Path="test/Karting.Domain.Tests/Karting.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
