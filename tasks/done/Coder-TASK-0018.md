@@ -1,19 +1,19 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0016
+ID: Coder-TASK-0018
 Stage: Stage-5
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
 DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: ready
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Create deployment docker compose baseline with api sqlserver redis and apparmor unconfined
+Prepare SQL stage handoff with deployment sql directories and procedure script placeholders
 
 ---
 
@@ -21,7 +21,7 @@ Create deployment docker compose baseline with api sqlserver redis and apparmor 
 
 AllowedWriteTargets:
 - deployment/**
-- api/**
+- docs/**
 
 Read-only
 - context/**
@@ -52,7 +52,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Validate docker compose configuration syntax and ensure service definitions include required runtime settings for this environment.
+Verify SQL placeholder layout and script naming conventions align with upcoming SQL Server stage requirements.
 
 ---
 
@@ -67,4 +67,10 @@ Validate docker compose configuration syntax and ensure service definitions incl
 > Updated by utilities/scripts/move-task.sh
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
-- [2026-02-23 22:26] MOVED backlog → ready | Stage 5 entry task
+- [2026-02-23 22:37] MOVED backlog → ready | Next Stage 5 task
+
+- [2026-02-23 22:37] MOVED ready → in-progress | Starting SQL handoff placeholders and docs
+
+- [2026-02-23 22:39] MOVED in-progress → review | SQL handoff structure and placeholder scripts prepared
+
+- [2026-02-23 22:42] MOVED review → done | Approved and completed

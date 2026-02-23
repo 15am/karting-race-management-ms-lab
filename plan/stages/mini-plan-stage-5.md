@@ -4,7 +4,7 @@
 StageNumber: 5
 StageName: deployment-runtime-foundation
 BranchName: feature/deployment-runtime-foundation
-Status: Ready
+Status: Active
 
 ---
 
