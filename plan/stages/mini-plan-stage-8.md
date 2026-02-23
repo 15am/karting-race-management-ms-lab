@@ -4,22 +4,24 @@
 StageNumber: 8
 StageName: final-readme-notes-and-closure
 BranchName: feature/final-readme-notes-and-closure
-Status: Draft
+Status: Active
 
 ---
 
 ## 2. Objective
-Finalize repository-level documentation with root README.md and NOTES.md after implementation stages complete.
+Finalize production-readiness updates and repository-level documentation by remediating frontend dependency issues, extending deployment with frontend runtime, exposing OpenAPI interaction, and completing root README.md and NOTES.md.
 
 ---
 
 ## 3. Scope
 
 AllowedWriteTargets:
+- frontend/**
+- deployment/**
+- api/src/Karting.Api/**
 - docs/**
 - README.md
 - NOTES.md
-- deployment/** (minimal reference links only)
 
 PlannerWriteTargets:
 - plan/**
@@ -36,13 +38,19 @@ ReadOnly:
 ## 4. Deliverables
 
 - ID: D1
-  Description: Root README.md with setup, docker, bare-metal, frontend, and testing instructions
+  Description: Frontend npm dependency vulnerabilities remediated and lockfile aligned
 
 - ID: D2
-  Description: Root NOTES.md with design decisions, tradeoffs, caching and stored procedure rationale, and future work
+  Description: Deployment compose includes frontend service for integrated testing workflow
 
 - ID: D3
-  Description: Documentation cross-links aligned with information/objective.md constraints
+  Description: API exposes Microsoft OpenAPI endpoint for interactive contract access
+
+- ID: D4
+  Description: Root README.md with setup, docker, bare-metal, frontend, and testing instructions
+
+- ID: D5
+  Description: Root NOTES.md with design decisions, tradeoffs, caching and stored procedure rationale, and future work
 
 ---
 

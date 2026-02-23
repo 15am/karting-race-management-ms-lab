@@ -4,6 +4,7 @@
 
 This document defines the Stage 5 deployment runtime baseline for local execution:
 
+- Frontend container running Vite dev server from `frontend/`
 - API container built from `api/src/Karting.Api/Dockerfile`
 - SQL Server container for upcoming database-backed stages
 - Redis container for distributed cache flows
@@ -28,6 +29,8 @@ This document defines the Stage 5 deployment runtime baseline for local executio
    `docker compose --env-file deployment/.env -f deployment/docker-compose.yml up -d`
 5. Apply schema and stored procedures:
    `deployment/scripts/apply-sql-scripts.sh`
+6. Open frontend:
+   `http://localhost:4173`
 
 The script validates compose rendering with `docker compose config` and fails if default SQL password remains.
 
@@ -36,6 +39,7 @@ The script validates compose rendering with `docker compose config` and fails if
 - `sqlserver` includes a health check using `sqlcmd SELECT 1`.
 - `redis` includes a health check using `redis-cli ping`.
 - `api` startup waits for SQL Server and Redis healthy state through `depends_on` conditions.
+- `frontend` runs Vite with `/api` proxy target set to `api:8080`.
 
 ## SQL runtime wiring
 
