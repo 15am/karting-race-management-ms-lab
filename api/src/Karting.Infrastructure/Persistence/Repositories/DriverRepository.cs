@@ -6,8 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karting.Infrastructure.Persistence.Repositories;
 
+/// <summary>
+/// Represents the DriverRepository class.
+/// </summary>
 public sealed class DriverRepository(KartingDbContext dbContext) : IDriverRepository
 {
+    /// <summary>
+    /// Executes AddAsync.
+    /// </summary>
+    /// <param name="driver">The driver value.</param>
+    /// <param name="cancellationToken">The cancellationToken value.</param>
+    /// <returns>The operation result.</returns>
     public async Task AddAsync(Driver driver, CancellationToken cancellationToken)
     {
         var entity = new DriverEntity
@@ -20,6 +29,12 @@ public sealed class DriverRepository(KartingDbContext dbContext) : IDriverReposi
         await dbContext.Drivers.AddAsync(entity, cancellationToken);
     }
 
+    /// <summary>
+    /// Executes ExistsAsync.
+    /// </summary>
+    /// <param name="driverId">The driverId value.</param>
+    /// <param name="cancellationToken">The cancellationToken value.</param>
+    /// <returns>The operation result.</returns>
     public Task<bool> ExistsAsync(DriverId driverId, CancellationToken cancellationToken)
     {
         return dbContext.Drivers.AnyAsync(x => x.Id == driverId.Value, cancellationToken);

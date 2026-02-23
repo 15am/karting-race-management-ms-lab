@@ -17,4 +17,7 @@ app.MapControllers();
 
 app.Run();
 
+/// <summary>
+/// Marker type for integration-test host bootstrapping.
+/// </summary>
 public partial class Program;

@@ -6,8 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karting.Infrastructure.Persistence.Queries;
 
+/// <summary>
+/// Represents the SqlServerRaceResultsQueryPort class.
+/// </summary>
 public sealed class SqlServerRaceResultsQueryPort(KartingDbContext dbContext) : IRaceResultsQueryPort
 {
+    /// <summary>
+    /// Executes GetRaceResultsAsync.
+    /// </summary>
+    /// <param name="raceId">The raceId value.</param>
+    /// <param name="cancellationToken">The cancellationToken value.</param>
+    /// <returns>The operation result.</returns>
     public async Task<IReadOnlyList<RaceResultItem>> GetRaceResultsAsync(RaceId raceId, CancellationToken cancellationToken)
     {
         var provider = dbContext.Database.ProviderName ?? string.Empty;

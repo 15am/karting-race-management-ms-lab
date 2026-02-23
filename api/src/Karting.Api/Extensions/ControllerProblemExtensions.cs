@@ -3,8 +3,18 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Karting.Api.Extensions;
 
+/// <summary>
+/// Represents the ControllerProblemExtensions class.
+/// </summary>
 public static class ControllerProblemExtensions
 {
+    /// <summary>
+    /// Executes ToProblem.
+    /// </summary>
+    /// <param name="controller">The controller value.</param>
+    /// <param name="errorCode">The errorCode value.</param>
+    /// <param name="errorMessage">The errorMessage value.</param>
+    /// <returns>The operation result.</returns>
     public static IActionResult ToProblem(this ControllerBase controller, string? errorCode, string? errorMessage)
     {
         var detail = errorMessage ?? "Request failed.";

@@ -7,12 +7,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Karting.Application.Features.Races.GetResults;
 
+/// <summary>
+/// Represents the GetRaceResultsHandler class.
+/// </summary>
 public sealed class GetRaceResultsHandler(
     IRaceResultsQueryPort raceResultsQueryPort,
     IRaceCacheService raceCacheService,
     GetRaceResultsValidator validator,
     ILogger<GetRaceResultsHandler> logger)
 {
+    /// <summary>
+    /// Executes HandleAsync.
+    /// </summary>
+    /// <param name="request">The request value.</param>
+    /// <param name="cancellationToken">The cancellationToken value.</param>
+    /// <returns>The operation result.</returns>
     public async Task<Result<GetRaceResultsResponse>> HandleAsync(GetRaceResultsRequest request, CancellationToken cancellationToken)
     {
         var validation = validator.Validate(request);

@@ -1,0 +1,30 @@
+@startuml
+hide methods
+hide stereotypes
+skinparam classAttributeIconSize 0
+
+class DriverEntity {
+  +Id: Guid
+  +Name: string
+  +CreatedAtUtc: DateTime
+}
+
+class RaceEntity {
+  +Id: Guid
+  +Name: string
+  +DateUtc: DateTime
+  +Status: string
+}
+
+class LapTimeEntity {
+  +Id: Guid
+  +RaceId: Guid
+  +DriverId: Guid
+  +LapNumber: int
+  +TimeMilliseconds: int
+  +CreatedAtUtc: DateTime
+}
+
+DriverEntity "1" <-- "0..*" LapTimeEntity : DriverId
+RaceEntity "1" <-- "0..*" LapTimeEntity : RaceId
+@enduml

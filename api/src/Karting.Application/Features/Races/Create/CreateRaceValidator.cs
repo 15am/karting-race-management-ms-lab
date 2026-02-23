@@ -2,8 +2,16 @@ using Karting.Application.Common;
 
 namespace Karting.Application.Features.Races.Create;
 
+/// <summary>
+/// Represents the CreateRaceValidator class.
+/// </summary>
 public sealed class CreateRaceValidator
 {
+    /// <summary>
+    /// Executes Validate.
+    /// </summary>
+    /// <param name="request">The request value.</param>
+    /// <returns>The operation result.</returns>
     public Result Validate(CreateRaceRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))

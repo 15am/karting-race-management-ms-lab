@@ -6,12 +6,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Karting.Application.Features.Drivers.Create;
 
+/// <summary>
+/// Represents the CreateDriverHandler class.
+/// </summary>
 public sealed class CreateDriverHandler(
     IDriverRepository driverRepository,
     IUnitOfWork unitOfWork,
     CreateDriverValidator validator,
     ILogger<CreateDriverHandler> logger)
 {
+    /// <summary>
+    /// Executes HandleAsync.
+    /// </summary>
+    /// <param name="request">The request value.</param>
+    /// <param name="cancellationToken">The cancellationToken value.</param>
+    /// <returns>The operation result.</returns>
     public async Task<Result<CreateDriverResponse>> HandleAsync(CreateDriverRequest request, CancellationToken cancellationToken)
     {
         var validation = validator.Validate(request);

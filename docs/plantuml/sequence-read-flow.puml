@@ -1,0 +1,39 @@
+@startuml
+actor Client
+participant "RacesController" as Controller
+participant "GetRaceResultsHandler" as ResultsHandler
+participant "GetFastestLapHandler" as FastestHandler
+participant "IRaceCacheService" as Cache
+participant "IRaceResultsQueryPort" as ResultsPort
+participant "IFastestLapQueryPort" as FastestPort
+
+== Race Results ==
+Client -> Controller: GET /races/{raceId}/results
+Controller -> ResultsHandler: HandleAsync(raceId)
+ResultsHandler -> Cache: GetAsync(resultsKey)
+alt cache hit
+  Cache --> ResultsHandler: cached results
+else cache miss
+  Cache --> ResultsHandler: null
+  ResultsHandler -> ResultsPort: GetRaceResultsAsync(raceId)
+  ResultsPort --> ResultsHandler: ordered result items
+  ResultsHandler -> Cache: SetAsync(resultsKey, payload)
+end
+ResultsHandler --> Controller: Result<GetRaceResultsResponse>
+Controller --> Client: 200 OK
+
+== Fastest Lap ==
+Client -> Controller: GET /races/{raceId}/fastest-lap
+Controller -> FastestHandler: HandleAsync(raceId)
+FastestHandler -> Cache: GetAsync(fastestLapKey)
+alt cache hit
+  Cache --> FastestHandler: cached fastest lap
+else cache miss
+  Cache --> FastestHandler: null
+  FastestHandler -> FastestPort: GetFastestLapAsync(raceId)
+  FastestPort --> FastestHandler: fastest lap or null
+  FastestHandler -> Cache: SetAsync(fastestLapKey, payload)
+end
+FastestHandler --> Controller: Result<GetFastestLapResponse>
+Controller --> Client: 200 OK / 404 Not Found
+@enduml

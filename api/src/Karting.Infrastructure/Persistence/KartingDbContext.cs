@@ -3,14 +3,30 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karting.Infrastructure.Persistence;
 
+/// <summary>
+/// Represents the KartingDbContext class.
+/// </summary>
 public sealed class KartingDbContext(DbContextOptions<KartingDbContext> options) : DbContext(options)
 {
+    /// <summary>
+    /// Represents a publicly exposed member.
+    /// </summary>
     public DbSet<DriverEntity> Drivers => Set<DriverEntity>();
 
+    /// <summary>
+    /// Represents a publicly exposed member.
+    /// </summary>
     public DbSet<RaceEntity> Races => Set<RaceEntity>();
 
+    /// <summary>
+    /// Represents a publicly exposed member.
+    /// </summary>
     public DbSet<LapTimeEntity> LapTimes => Set<LapTimeEntity>();
 
+    /// <summary>
+    /// Executes OnModelCreating.
+    /// </summary>
+    /// <param name="modelBuilder">The modelBuilder value.</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DriverEntity>(entity =>

@@ -1,0 +1,20 @@
+@startuml
+actor Client
+participant "LapTimesController" as Controller
+participant "CreateLapTimeHandler" as Handler
+participant "CreateLapTimeValidator" as Validator
+participant "ILapTimeRepository" as LapRepo
+participant "IUnitOfWork" as UnitOfWork
+participant "IRaceCacheService" as Cache
+
+Client -> Controller: POST /laptimes
+Controller -> Handler: HandleAsync(request)
+Handler -> Validator: Validate(request)
+Validator --> Handler: Result.Success
+Handler -> LapRepo: AddAsync(lapTime)
+Handler -> UnitOfWork: SaveChangesAsync()
+Handler -> Cache: RemoveAsync(race:{raceId}:results)
+Handler -> Cache: RemoveAsync(race:{raceId}:fastestlap)
+Handler --> Controller: Result<CreateLapTimeResponse>
+Controller --> Client: 201 Created
+@enduml

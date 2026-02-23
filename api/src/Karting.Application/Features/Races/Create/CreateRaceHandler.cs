@@ -7,12 +7,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Karting.Application.Features.Races.Create;
 
+/// <summary>
+/// Represents the CreateRaceHandler class.
+/// </summary>
 public sealed class CreateRaceHandler(
     IRaceRepository raceRepository,
     IUnitOfWork unitOfWork,
     CreateRaceValidator validator,
     ILogger<CreateRaceHandler> logger)
 {
+    /// <summary>
+    /// Executes HandleAsync.
+    /// </summary>
+    /// <param name="request">The request value.</param>
+    /// <param name="cancellationToken">The cancellationToken value.</param>
+    /// <returns>The operation result.</returns>
     public async Task<Result<CreateRaceResponse>> HandleAsync(CreateRaceRequest request, CancellationToken cancellationToken)
     {
         var validation = validator.Validate(request);

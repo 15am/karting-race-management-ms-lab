@@ -71,6 +71,7 @@ Planner MUST NOT implement code directly.
 - Stage-1: API foundation and write endpoints
 - Stage-2: Race aggregate queries with stored procedures and distributed cache
 - Stage-3: Hardening, provider-readiness, and integration coverage
+- Stage-4: XML compliance and architecture documentation with PlantUML
 
 Planner MAY refine stages but MUST preserve order.
 
