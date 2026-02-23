@@ -1,19 +1,19 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0025
+ID: Coder-TASK-0024
 Stage: Stage-7
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
-DependsOn: Coder-TASK-0024
+DependsOn: Coder-TASK-0023
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Harden frontend runtime integration with env proxy and optional API CORS docs
+Implement race results and fastest lap UI against API endpoints
 
 ---
 
@@ -21,8 +21,6 @@ Harden frontend runtime integration with env proxy and optional API CORS docs
 
 AllowedWriteTargets:
 - frontend/**
-- api/src/Karting.Api/**
-- docs/** (minimal runtime notes)
 
 Read-only
 - context/**
@@ -53,7 +51,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Validate frontend runtime through Dockerized Node commands, verify proxy and environment behavior, and if CORS changes are needed validate API build and integration test baseline.
+Run frontend lint and build through Dockerized Node commands and verify race results plus fastest lap rendering behavior against configured API base URL.
 
 ---
 
@@ -69,8 +67,10 @@ Validate frontend runtime through Dockerized Node commands, verify proxy and env
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
 
-- [2026-02-23 23:25] MOVED backlog → ready | Next Stage 7 task
+- [2026-02-23 23:21] MOVED backlog → ready | Next Stage 7 task
 
-- [2026-02-23 23:25] MOVED ready → in-progress | Starting frontend runtime hardening with env and proxy
+- [2026-02-23 23:21] MOVED ready → in-progress | Starting race results and fastest lap UI implementation
 
-- [2026-02-23 23:27] MOVED in-progress → review | Frontend runtime hardening with env/proxy docs validated
+- [2026-02-23 23:25] MOVED in-progress → review | Race results and fastest-lap UI implemented and validated
+
+- [2026-02-23 23:31] MOVED review → done | Approved and completed

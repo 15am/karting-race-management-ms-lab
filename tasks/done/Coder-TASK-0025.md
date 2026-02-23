@@ -1,19 +1,19 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0023
+ID: Coder-TASK-0025
 Stage: Stage-7
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
-DependsOn: None
+DependsOn: Coder-TASK-0024
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Scaffold minimal React frontend with Dockerized Node workflow and no local Node tools
+Harden frontend runtime integration with env proxy and optional API CORS docs
 
 ---
 
@@ -21,7 +21,8 @@ Scaffold minimal React frontend with Dockerized Node workflow and no local Node 
 
 AllowedWriteTargets:
 - frontend/**
-- docs/** (minimal, frontend setup notes only)
+- api/src/Karting.Api/**
+- docs/** (minimal runtime notes)
 
 Read-only
 - context/**
@@ -52,7 +53,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Use Dockerized Node commands to install dependencies and run frontend build verification without requiring local node or npm installation.
+Validate frontend runtime through Dockerized Node commands, verify proxy and environment behavior, and if CORS changes are needed validate API build and integration test baseline.
 
 ---
 
@@ -68,8 +69,10 @@ Use Dockerized Node commands to install dependencies and run frontend build veri
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
 
-- [2026-02-23 23:15] MOVED backlog → ready | Stage 7 entry task
+- [2026-02-23 23:25] MOVED backlog → ready | Next Stage 7 task
 
-- [2026-02-23 23:17] MOVED ready → in-progress | Starting frontend scaffold with Dockerized Node workflow
+- [2026-02-23 23:25] MOVED ready → in-progress | Starting frontend runtime hardening with env and proxy
 
-- [2026-02-23 23:21] MOVED in-progress → review | Frontend scaffold and Dockerized Node workflow validated
+- [2026-02-23 23:27] MOVED in-progress → review | Frontend runtime hardening with env/proxy docs validated
+
+- [2026-02-23 23:31] MOVED review → done | Approved and completed

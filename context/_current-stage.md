@@ -1,1 +1,0 @@
-minimal-frontend-race-results
