@@ -6,8 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Karting.Infrastructure.Persistence.Queries;
 
+/// <summary>
+/// Represents the SqlServerFastestLapQueryPort class.
+/// </summary>
 public sealed class SqlServerFastestLapQueryPort(KartingDbContext dbContext) : IFastestLapQueryPort
 {
+    /// <summary>
+    /// Executes GetFastestLapAsync.
+    /// </summary>
+    /// <param name="raceId">The raceId value.</param>
+    /// <param name="cancellationToken">The cancellationToken value.</param>
+    /// <returns>The operation result.</returns>
     public async Task<FastestLapItem?> GetFastestLapAsync(RaceId raceId, CancellationToken cancellationToken)
     {
         var provider = dbContext.Database.ProviderName ?? string.Empty;

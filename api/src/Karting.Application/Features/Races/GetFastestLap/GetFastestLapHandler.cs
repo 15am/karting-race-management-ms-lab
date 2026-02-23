@@ -7,12 +7,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Karting.Application.Features.Races.GetFastestLap;
 
+/// <summary>
+/// Represents the GetFastestLapHandler class.
+/// </summary>
 public sealed class GetFastestLapHandler(
     IFastestLapQueryPort fastestLapQueryPort,
     IRaceCacheService raceCacheService,
     GetFastestLapValidator validator,
     ILogger<GetFastestLapHandler> logger)
 {
+    /// <summary>
+    /// Executes HandleAsync.
+    /// </summary>
+    /// <param name="request">The request value.</param>
+    /// <param name="cancellationToken">The cancellationToken value.</param>
+    /// <returns>The operation result.</returns>
     public async Task<Result<GetFastestLapResponse>> HandleAsync(GetFastestLapRequest request, CancellationToken cancellationToken)
     {
         var validation = validator.Validate(request);

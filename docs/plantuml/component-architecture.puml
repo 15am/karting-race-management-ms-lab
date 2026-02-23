@@ -1,0 +1,76 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+package "API" {
+  [DriversController]
+  [RacesController]
+  [LapTimesController]
+  [GlobalExceptionMiddleware]
+}
+
+package "Application" {
+  [CreateDriverHandler]
+  [CreateRaceHandler]
+  [CreateLapTimeHandler]
+  [GetRaceResultsHandler]
+  [GetFastestLapHandler]
+
+  interface IRaceResultsQueryPort
+  interface IFastestLapQueryPort
+  interface IDriverRepository
+  interface IRaceRepository
+  interface ILapTimeRepository
+  interface IUnitOfWork
+  interface IRaceCacheService
+}
+
+package "Infrastructure" {
+  [SqlServerRaceResultsQueryPort]
+  [SqlServerFastestLapQueryPort]
+  [DriverRepository]
+  [RaceRepository]
+  [LapTimeRepository]
+  [UnitOfWork]
+  [DistributedRaceCacheService]
+  [KartingDbContext]
+}
+
+database "SQL Server" as SqlServer
+queue "Distributed Cache\n(IDistributedCache)" as DistCache
+
+DriversController --> CreateDriverHandler
+RacesController --> CreateRaceHandler
+RacesController --> GetRaceResultsHandler
+RacesController --> GetFastestLapHandler
+LapTimesController --> CreateLapTimeHandler
+
+CreateDriverHandler --> IDriverRepository
+CreateDriverHandler --> IUnitOfWork
+CreateRaceHandler --> IRaceRepository
+CreateRaceHandler --> IUnitOfWork
+CreateLapTimeHandler --> ILapTimeRepository
+CreateLapTimeHandler --> IUnitOfWork
+CreateLapTimeHandler --> IRaceCacheService
+GetRaceResultsHandler --> IRaceResultsQueryPort
+GetRaceResultsHandler --> IRaceCacheService
+GetFastestLapHandler --> IFastestLapQueryPort
+GetFastestLapHandler --> IRaceCacheService
+
+SqlServerRaceResultsQueryPort ..|> IRaceResultsQueryPort
+SqlServerFastestLapQueryPort ..|> IFastestLapQueryPort
+DriverRepository ..|> IDriverRepository
+RaceRepository ..|> IRaceRepository
+LapTimeRepository ..|> ILapTimeRepository
+UnitOfWork ..|> IUnitOfWork
+DistributedRaceCacheService ..|> IRaceCacheService
+
+DriverRepository --> KartingDbContext
+RaceRepository --> KartingDbContext
+LapTimeRepository --> KartingDbContext
+UnitOfWork --> KartingDbContext
+SqlServerRaceResultsQueryPort --> KartingDbContext
+SqlServerFastestLapQueryPort --> KartingDbContext
+KartingDbContext --> SqlServer
+DistributedRaceCacheService --> DistCache
+@enduml

@@ -2,8 +2,16 @@ using Karting.Application.Common;
 
 namespace Karting.Application.Features.LapTimes.Create;
 
+/// <summary>
+/// Represents the CreateLapTimeValidator class.
+/// </summary>
 public sealed class CreateLapTimeValidator
 {
+    /// <summary>
+    /// Executes Validate.
+    /// </summary>
+    /// <param name="request">The request value.</param>
+    /// <returns>The operation result.</returns>
     public Result Validate(CreateLapTimeRequest request)
     {
         if (request.RaceId == Guid.Empty)

@@ -4,8 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Karting.Api.Middleware;
 
+/// <summary>
+/// Represents the GlobalExceptionMiddleware class.
+/// </summary>
 public sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
 {
+    /// <summary>
+    /// Executes Invoke.
+    /// </summary>
+    /// <param name="context">The context value.</param>
+    /// <returns>The operation result.</returns>
     public async Task Invoke(HttpContext context)
     {
         try

@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Karting.Application.Features.LapTimes.Create;
 
+/// <summary>
+/// Represents the CreateLapTimeHandler class.
+/// </summary>
 public sealed class CreateLapTimeHandler(
     ILapTimeRepository lapTimeRepository,
     IUnitOfWork unitOfWork,
@@ -15,6 +18,12 @@ public sealed class CreateLapTimeHandler(
     CreateLapTimeValidator validator,
     ILogger<CreateLapTimeHandler> logger)
 {
+    /// <summary>
+    /// Executes HandleAsync.
+    /// </summary>
+    /// <param name="request">The request value.</param>
+    /// <param name="cancellationToken">The cancellationToken value.</param>
+    /// <returns>The operation result.</returns>
     public async Task<Result<CreateLapTimeResponse>> HandleAsync(CreateLapTimeRequest request, CancellationToken cancellationToken)
     {
         var validation = validator.Validate(request);

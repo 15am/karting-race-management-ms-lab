@@ -7,8 +7,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Karting.Application;
 
+/// <summary>
+/// Represents the DependencyInjection class.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Executes AddApplication.
+    /// </summary>
+    /// <param name="services">The services value.</param>
+    /// <returns>The operation result.</returns>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<CreateDriverValidator>();

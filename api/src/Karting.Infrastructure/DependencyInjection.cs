@@ -11,8 +11,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Karting.Infrastructure;
 
+/// <summary>
+/// Represents the DependencyInjection class.
+/// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// Executes AddInfrastructure.
+    /// </summary>
+    /// <param name="services">The services value.</param>
+    /// <param name="configuration">The configuration value.</param>
+    /// <returns>The operation result.</returns>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var provider = configuration["Database:Provider"] ?? "InMemory";
