@@ -4,7 +4,7 @@
 StageNumber: 7
 StageName: minimal-frontend-race-results
 BranchName: feature/minimal-frontend-race-results
-Status: Draft
+Status: Active
 
 ---
 
