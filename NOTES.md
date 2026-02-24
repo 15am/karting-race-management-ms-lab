@@ -1,59 +1,64 @@
 # NOTES
 
-## Design decisions
+## Approach and key design decisions
 
-1. Vertical slices and clean boundaries
-- Endpoint behavior is modeled by feature handlers and ports.
-- Infrastructure adapters implement storage, query, and cache contracts.
+1. Vertical slices + clean boundaries
+- API behavior is organized by feature slices (drivers, races, lap times, race aggregates).
+- Application depends on ports/contracts; infrastructure provides adapters.
 
-2. SQL Server first with provider-ready direction
-- SQL Server is the current concrete provider.
-- Query behavior is exposed through application ports to allow future provider adapters.
+2. SQL Server first, provider-ready
+- SQL Server is the active provider for current delivery.
+- Read/query contracts are exposed through application ports so another SQL provider can be added later with new adapters.
 
-3. Stored procedures for aggregate reads
-- Race results and fastest lap are computed through stored procedures.
-- Deterministic ordering rules are implemented in SQL for stable output.
+3. Aggregate reads through stored procedures
+- `GET /races/{raceId}/results` and `GET /races/{raceId}/fastest-lap` use SQL stored procedures.
+- Ordering logic is deterministic in SQL to keep response order stable.
 
-4. Cache strategy
-- Aggregate read endpoints use distributed cache abstractions.
-- `POST /laptimes` invalidates both aggregate cache keys.
+4. Cache invalidation and consistency
+- Aggregate reads use distributed cache abstractions.
+- `POST /laptimes` invalidates both aggregate cache keys for that race.
 
-5. Frontend runtime without local Node dependency
-- Frontend commands use Dockerized Node wrappers.
-- Deployment compose includes a frontend service for end-to-end testing.
+5. Runtime strategy for constrained environments
+- Compose services include `apparmor:unconfined` where needed.
+- SQL initialization is automated with a dedicated `sql-bootstrap` service.
+- Seed data is applied automatically to support immediate frontend/API testing.
 
-6. OpenAPI access path
-- API exposes Microsoft OpenAPI document output via `/openapi/v1.json`.
-- HTTP REPL can consume the document for interactive API calls.
+6. API discoverability
+- Built-in Microsoft OpenAPI document exposed at `/openapi/v1.json`.
+- Supports CLI-driven exploration through Microsoft HTTP REPL.
 
-## Security and dependency notes
-
-1. Frontend npm remediation
-- `npm audit` high-severity issue was remediated by pinning a safe transitive version using:
-  - `frontend/package.json` overrides: `minimatch@^10.2.1`
-- Lockfile was refreshed after remediation.
-
-2. Deployment environment
-- SQL `SA_PASSWORD` must be replaced from default before runtime startup.
-- AppArmor compatibility is explicitly configured in compose services.
-
-## Tradeoffs
+## Tradeoffs made
 
 1. Frontend compose service uses Vite dev server
-- Optimized for quick testability and parity with local frontend workflow.
-- Not intended as final production static-serving strategy.
+- Faster feedback for development and testing.
+- Not a production-grade static serving approach.
 
-2. OpenAPI exposure is document-first
-- Built-in OpenAPI endpoint is enabled for tooling and contract use.
-- No additional third-party UI was introduced in this stage.
+2. OpenAPI document only (no UI bundle)
+- Keeps dependency footprint lower and stays aligned with built-in ASP.NET capabilities.
+- Requires external client/tooling for interactive browsing.
 
-3. Stage script limitations
-- `validate-stage.sh` in this repository currently assumes root-level solution discovery.
-- Practical validation uses explicit solution path commands (`api/Karting.slnx`).
+3. Startup bootstrap in compose
+- Improves local developer onboarding and avoids manual SQL setup.
+- Adds startup coupling between API availability and SQL bootstrap completion.
 
-## Future work
+4. Stage validation adaptation
+- Repository scripts have some operational caveats; practical validation used explicit `api/Karting.slnx` commands when needed.
 
-1. Harden frontend production serving (static build image + reverse proxy strategy).
-2. Add authenticated API access and role-aware authorization.
-3. Expand DB-backed integration scenarios in CI with SQL service provisioning.
-4. Add richer OpenAPI consumer workflow (UI and API examples).
+## What I would improve with more time
+
+1. Add production-ready frontend deployment path (multi-stage build + static server/reverse proxy).
+2. Add authenticated API access and authorization policies.
+3. Expand integration test matrix with SQL-backed CI services.
+4. Add migration/versioning strategy for SQL scripts beyond numeric ordering.
+5. Add richer API consumer experience (OpenAPI UI option and example request collections).
+
+## Where AI assisted
+
+AI (Codex) assisted with:
+
+- scaffolding and iterating stage tasks/workflow artifacts
+- implementing repetitive code and documentation updates
+- drafting/refining Docker Compose and SQL bootstrap wiring
+- generating and validating incremental endpoint smoke checks
+
+All architectural decisions, scope choices, and final merges were user-reviewed and approved.
