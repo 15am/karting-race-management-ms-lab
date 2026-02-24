@@ -23,10 +23,13 @@ services:
       - karting-network
 
   api:
-    build:
-      context: ..
-      dockerfile: api/src/Karting.Api/Dockerfile
+    image: mcr.microsoft.com/dotnet/sdk:10.0
     container_name: karting-api
+    working_dir: /workspace/api/src/Karting.Api
+    command:
+      - sh
+      - -c
+      - dotnet restore Karting.Api.csproj && dotnet run --no-restore --urls=http://0.0.0.0:${API_INTERNAL_PORT:-8080}
     restart: unless-stopped
     security_opt:
       - apparmor:unconfined
@@ -38,11 +41,45 @@ services:
       ConnectionStrings__Redis: ${REDIS_CONNECTION_STRING:-redis:6379}
     ports:
       - "${API_PORT:-8080}:${API_INTERNAL_PORT:-8080}"
+    volumes:
+      - ..:/workspace
     depends_on:
       sqlserver:
-        condition: service_healthy
+        condition: service_started
+      sql-bootstrap:
+        condition: service_completed_successfully
       redis:
-        condition: service_healthy
+        condition: service_started
+    networks:
+      - karting-network
+
+  sql-bootstrap:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: karting-sql-bootstrap
+    restart: "no"
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD}
+    command:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+        SQLCMD="/opt/mssql-tools/bin/sqlcmd"
+        until "$$SQLCMD" -S sqlserver -U sa -P "$$SA_PASSWORD" -Q "SELECT 1" -C >/dev/null 2>&1; do
+          sleep 2
+        done
+        "$$SQLCMD" -S sqlserver -U sa -P "$$SA_PASSWORD" -C -i /opt/karting/sql/schema/000-bootstrap-database.sql
+        "$$SQLCMD" -S sqlserver -U sa -P "$$SA_PASSWORD" -C -i /opt/karting/sql/schema/010-create-core-tables.sql
+        "$$SQLCMD" -S sqlserver -U sa -P "$$SA_PASSWORD" -C -i /opt/karting/sql/stored-procedures/100-create-sp-get-race-results.sql
+        "$$SQLCMD" -S sqlserver -U sa -P "$$SA_PASSWORD" -C -i /opt/karting/sql/stored-procedures/110-create-sp-get-fastest-lap.sql
+        "$$SQLCMD" -S sqlserver -U sa -P "$$SA_PASSWORD" -C -i /opt/karting/sql/seed/200-seed-sample-data.sql
+    depends_on:
+      sqlserver:
+        condition: service_started
+    volumes:
+      - ./sql:/opt/karting/sql:ro
     networks:
       - karting-network
 
@@ -61,13 +98,7 @@ services:
       - sqlserver-data:/var/opt/mssql
       - ./sql:/opt/karting/sql:ro
     healthcheck:
-      test:
-        - CMD-SHELL
-        - /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -C >/dev/null || exit 1
-      interval: 10s
-      timeout: 5s
-      retries: 15
-      start_period: 20s
+      disable: true
     networks:
       - karting-network
 
@@ -83,11 +114,7 @@ services:
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 10s
+      disable: true
     networks:
       - karting-network
 

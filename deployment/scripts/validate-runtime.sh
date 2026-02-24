@@ -33,6 +33,11 @@ if [[ ! -d "$BASE_DIR/deployment/sql/stored-procedures" ]]; then
   exit 1
 fi
 
+if [[ ! -d "$BASE_DIR/deployment/sql/seed" ]]; then
+  echo "Missing deployment/sql/seed directory."
+  exit 1
+fi
+
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "Missing deployment/.env. Copy deployment/.env.example to deployment/.env first."
   exit 1

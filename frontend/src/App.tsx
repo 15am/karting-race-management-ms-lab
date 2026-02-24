@@ -4,7 +4,14 @@ import { fetchFastestLap, fetchRaceResults } from './api'
 import type { FastestLapResponse, RaceResultItem } from './types'
 import './App.css'
 
-const defaultRaceId = '11111111-1111-1111-1111-111111111111'
+const seededTestIds = [
+  { label: 'Race ID', value: '11111111-1111-1111-1111-111111111111' },
+  { label: 'Driver ID 1', value: '22222222-2222-2222-2222-222222222222' },
+  { label: 'Driver ID 2', value: '33333333-3333-3333-3333-333333333333' },
+  { label: 'Driver ID 3', value: '44444444-4444-4444-4444-444444444444' },
+  { label: 'Lap ID 1', value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1' },
+  { label: 'Lap ID 2', value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2' },
+]
 
 const formatMilliseconds = (value: number): string => {
   const seconds = Math.floor(value / 1000)
@@ -13,7 +20,7 @@ const formatMilliseconds = (value: number): string => {
 }
 
 function App() {
-  const [raceIdInput, setRaceIdInput] = useState(defaultRaceId)
+  const [raceIdInput, setRaceIdInput] = useState('')
   const [selectedRaceId, setSelectedRaceId] = useState<string>('')
   const [results, setResults] = useState<RaceResultItem[]>([])
   const [fastestLap, setFastestLap] = useState<FastestLapResponse | null>(null)
@@ -75,7 +82,7 @@ function App() {
               type="text"
               value={raceIdInput}
               onChange={(event) => setRaceIdInput(event.target.value)}
-              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              placeholder="e.g. 11111111-1111-1111-1111-111111111111"
             />
             <button type="submit" disabled={isLoading}>
               {isLoading ? 'Loading...' : 'Load race'}
@@ -83,6 +90,18 @@ function App() {
           </div>
         </form>
         {errorMessage ? <p className="status status--error">{errorMessage}</p> : null}
+      </section>
+
+      <section className="panel panel--ids">
+        <h2>Test IDs</h2>
+        <p className="status">Use these seeded values for copy/paste testing.</p>
+        <ul className="id-list">
+          {seededTestIds.map((item) => (
+            <li key={item.value}>
+              <strong>{item.label}:</strong> <code>{item.value}</code>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {selectedRaceId ? (

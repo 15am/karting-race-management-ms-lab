@@ -8,6 +8,7 @@ ENV_FILE="$BASE_DIR/deployment/.env"
 SQL_ROOT="$BASE_DIR/deployment/sql"
 SCHEMA_DIR="$SQL_ROOT/schema"
 PROCEDURE_DIR="$SQL_ROOT/stored-procedures"
+SEED_DIR="$SQL_ROOT/seed"
 SQLCMD="/opt/mssql-tools18/bin/sqlcmd"
 TIMEOUT_SECONDS=120
 
@@ -38,6 +39,11 @@ fi
 
 if [[ ! -d "$PROCEDURE_DIR" ]]; then
   echo "Missing SQL stored-procedure directory: deployment/sql/stored-procedures"
+  exit 1
+fi
+
+if [[ ! -d "$SEED_DIR" ]]; then
+  echo "Missing SQL seed directory: deployment/sql/seed"
   exit 1
 fi
 
@@ -73,6 +79,7 @@ run_script() {
 shopt -s nullglob
 schema_scripts=("$SCHEMA_DIR"/*.sql)
 procedure_scripts=("$PROCEDURE_DIR"/*.sql)
+seed_scripts=("$SEED_DIR"/*.sql)
 
 if (( ${#schema_scripts[@]} == 0 )); then
   echo "No schema scripts found in deployment/sql/schema."
@@ -84,11 +91,20 @@ if (( ${#procedure_scripts[@]} == 0 )); then
   exit 1
 fi
 
+if (( ${#seed_scripts[@]} == 0 )); then
+  echo "No seed scripts found in deployment/sql/seed."
+  exit 1
+fi
+
 for script in "${schema_scripts[@]}"; do
   run_script "$script"
 done
 
 for script in "${procedure_scripts[@]}"; do
+  run_script "$script"
+done
+
+for script in "${seed_scripts[@]}"; do
   run_script "$script"
 done
 

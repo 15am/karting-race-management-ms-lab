@@ -90,6 +90,26 @@
   color: var(--text-soft);
 }
 
+.panel--ids h2 {
+  margin-top: 0;
+}
+
+.id-list {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.id-list code {
+  word-break: break-all;
+  font-size: 0.85rem;
+  background: #eef4f7;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 0.1rem 0.35rem;
+}
+
 .results-grid {
   display: grid;
   gap: 1rem;
