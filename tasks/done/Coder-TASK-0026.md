@@ -1,28 +1,26 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0029
+ID: Coder-TASK-0026
 Stage: Stage-8
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
-DependsOn: Coder-TASK-0028
+DependsOn: None
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Finalize root README and NOTES with complete runbook and decisions
+Remediate frontend npm vulnerabilities and refresh dependency lockfile
 
 ---
 
 ## 3. Scope
 
 AllowedWriteTargets:
-- README.md
-- NOTES.md
-- docs/**
+- frontend/**
 
 Read-only
 - context/**
@@ -53,7 +51,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Validate commands in documentation against repository scripts and ensure final root docs align with objective and stage outputs.
+Run Dockerized frontend dependency audit and verify frontend lint and build succeed after remediation.
 
 ---
 
@@ -69,8 +67,10 @@ Validate commands in documentation against repository scripts and ensure final r
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
 
-- [2026-02-23 23:43] MOVED backlog → ready | Next Stage 8 task
+- [2026-02-23 23:37] MOVED backlog → ready | Stage 8 entry task
 
-- [2026-02-23 23:43] MOVED ready → in-progress | Starting final root documentation runbook
+- [2026-02-23 23:37] MOVED ready → in-progress | Starting npm vulnerability remediation
 
-- [2026-02-23 23:45] MOVED in-progress → review | Final root documentation and runbook completed
+- [2026-02-23 23:39] MOVED in-progress → review | Frontend audit remediated with zero high vulnerabilities
+
+- [2026-02-24 00:37] MOVED review → done | Human approved and merged to development

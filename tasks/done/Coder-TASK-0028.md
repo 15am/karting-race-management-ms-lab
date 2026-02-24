@@ -1,27 +1,26 @@
 # TASK
 
 ## 1. Metadata
-ID: Coder-TASK-0027
+ID: Coder-TASK-0028
 Stage: Stage-8
 ExecutionMode: Implementation | Provisioning | Testing | Deployment
-DependsOn: Coder-TASK-0026
+DependsOn: Coder-TASK-0027
 Actor: Coder
 TaskType: Work | StageValidation
-Status: review
+Status: done
 BlockedBy: None
 
 ---
 
 ## 2. Objective
-Add frontend service to deployment compose for integrated testing
+Expose Microsoft OpenAPI endpoint for API interaction
 
 ---
 
 ## 3. Scope
 
 AllowedWriteTargets:
-- frontend/**
-- deployment/**
+- api/src/Karting.Api/**
 - docs/**
 
 Read-only
@@ -53,7 +52,7 @@ Coder MUST follow:
 ---
 
 ## 6. Testing Strategy
-Validate compose rendering and deployment runtime scripts with frontend service included, and verify frontend container build path succeeds.
+Run API build and test baseline, then verify OpenAPI document endpoint is exposed and documented.
 
 ---
 
@@ -69,8 +68,10 @@ Validate compose rendering and deployment runtime scripts with frontend service 
 
 - [YYYY-MM-DD HH:mm] CREATED (backlog)
 
-- [2026-02-23 23:39] MOVED backlog → ready | Next Stage 8 task
+- [2026-02-23 23:42] MOVED backlog → ready | Next Stage 8 task
 
-- [2026-02-23 23:39] MOVED ready → in-progress | Starting frontend deployment compose integration
+- [2026-02-23 23:42] MOVED ready → in-progress | Starting Microsoft OpenAPI exposure
 
-- [2026-02-23 23:42] MOVED in-progress → review | Frontend compose integration validated
+- [2026-02-23 23:43] MOVED in-progress → review | Microsoft OpenAPI endpoint exposed and validated
+
+- [2026-02-24 00:37] MOVED review → done | Human approved and merged to development
