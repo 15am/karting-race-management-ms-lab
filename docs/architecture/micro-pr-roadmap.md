@@ -24,18 +24,18 @@
 - **Compatibilidad:** sin cambios API/DB. **Rollback:** revertir workflow/template/docs.
 
 ### PR-02 — Pruebas reales de SQL Server
-- **Objetivo/contrato:** probar FK, constraints, SP, ranking, fastest lap e invalidación de caché en SQL real. InMemory queda para unit tests.
+- **Objetivo/contrato:** probar FK, constraints, SP, ranking, fastest lap e invalidación de caché en SQL real. InMemory queda para unit tests. Definir una matriz de contrato HTTP para `raceId`/`driverId` desconocidos con ambos proveedores antes de depender de la FK; baseline actual no valida existencia en el handler y una violación SQL llega al middleware como 500 `Unexpected error`.
 - **Dependencias:** PR-01 o fixture efímera equivalente. **Archivos:** Karting.Api.IntegrationTests, SQL scripts y fixture.
 - **Worker/generación:** UM890 genera un escenario por cambio; controller valida IDs y destino.
-- **Pruebas/aceptación:** IDs válidos pasan; desconocidos fallan por FK; SP y contrato coinciden; prueba muestra ejecución real.
+- **Pruebas/aceptación:** IDs válidos pasan; casos desconocidos y status/body quedan definidos y probados en InMemory y SQL Server; verificar explícitamente la excepción SQL/FK y el mapeo HTTP elegido; SP y contrato coinciden; prueba muestra ejecución real.
 - **Docker:** SQL efímero, sin volumen persistente/puerto compartido.
 - **Compatibilidad:** sólo mejora evidencia. **Rollback:** quitar fixture si CI no puede provisionar, mantener unit tests.
 
 ### PR-03 — Redis y errores tras commit
-- **Objetivo/contrato:** decidir usar Redis o retirarlo del Compose. Si se conserva, registrar su provider y probarlo; definir resultado HTTP si SQL commit pasa y cache invalidation falla, evitando errores ambiguos/reintentos duplicados.
+- **Objetivo/contrato:** decidir usar Redis o retirarlo del Compose. Si se conserva, registrar su provider y probarlo; tratar por separado (a) SQL commit exitoso seguido de fallo de invalidación y (b) lecturas obsoletas ya presentes en caché. Definir respuesta/reintento sin duplicar escrituras y estrategia de consistencia para ambas ventanas; el estado actual invalida después de `SaveChangesAsync` sin transacción común.
 - **Dependencias:** PR-01/02. **Archivos:** Program/Infrastructure DI, csproj, Compose, handlers/tests.
 - **Worker/generación:** UM890 propone cambios DI y test limitados; controller comprueba provider efectivo y efecto del fallo.
-- **Pruebas/aceptación:** hit/miss, invalidación, Redis apagado y persistencia real comprobados.
+- **Pruebas/aceptación:** hit/miss, cada ventana de fallo, invalidación, Redis apagado y persistencia real comprobados.
 - **Docker:** Redis efímero con healthcheck y project isolation, si se retiene.
 - **Compatibilidad:** mismas rutas/DTO/orden. **Rollback:** revertir wiring/config, sin tocar datos.
 
@@ -48,10 +48,10 @@
 - **Compatibilidad:** comportamiento actual intacto. **Rollback:** revertir movimientos sin DB migration.
 
 ### PR-05 — Contrato de Driver/Timing y nombres
-- **Objetivo/contrato:** decidir nombre actual vs snapshot, alta reciente, ID desconocido, Registry caído, disponibilidad y staleness.
+- **Objetivo/contrato:** especificar nombre (actual o snapshot y cuándo), agrupamiento/desempate de resultados, alta reciente, ID desconocido, Registry caído, disponibilidad, staleness tolerable y si la proyección puede afectar ranking. Determinar autoridad de lectura durante backfill/cutover y reconciliación de escrituras concurrentes.
 - **Dependencias:** PR-02/04 y decisión producto/operación. **Archivos:** ADR, API contract tests y docs.
 - **Worker/generación:** Luna coordina; UM870 sólo genera casos tras cerrar reglas.
-- **Pruebas/aceptación:** status code, retry, identidad y nombre quedan precisos.
+- **Pruebas/aceptación:** matriz status/body/retry por proveedor y fallos de Registry; identidad, nombre, agrupamiento, desempates y autoridad durante cutover quedan precisos y probados tanto en stored procedure como fallback LINQ.
 - **Docker:** ninguno.
 - **Compatibilidad:** todo cambio observable se aprueba antes. **Rollback:** sólo docs/tests hasta decisión.
 
@@ -75,7 +75,7 @@
 - **Objetivo/contrato:** Race/Timing mantiene en su DB el mínimo de identidad necesario para lecturas; consumo idempotente y reconciliable.
 - **Dependencias:** PR-05/06/07. **Archivos:** schema de proyección, consumer, query ports y tests.
 - **Worker/generación:** UM890; controller separa schema/consumer/query.
-- **Pruebas/aceptación:** duplicado, fuera de orden, reconstrucción, lag y nombre probados con SQL/transporte.
+- **Pruebas/aceptación:** duplicado, fuera de orden, reconstrucción y lag; autoridad de lectura en backfill/cutover y cambios de nombre que afecten agrupamiento/desempate, probados con SQL/transporte.
 - **Docker:** consumer aislado, sin acceso a DB Registry.
 - **Compatibilidad:** JSON/orden de results y fastest-lap se conservan.
 - **Rollback:** mantener lectura anterior hasta comparación; nuevo path tras feature flag.
@@ -98,10 +98,10 @@
 - **Rollback:** antes de nuevos writes se vuelve; después se requiere replay/freeze/reconciliación, no cambiar DNS solamente.
 
 ### PR-11 — Compatibilidad HTTP y cutover
-- **Objetivo/contrato:** mantener /api/drivers/DTOs, enrutar a Registry, FK Race local y sin FK cross-DB Driver; aplicar regla de referencia aprobada.
+- **Objetivo/contrato:** fijar rutas canónicas y papel del gateway/proxy antes de enrutar a Registry. El baseline expone `/drivers`; `/api` lo antepone el cliente Vite y el proxy de desarrollo lo elimina; no se ha demostrado `/api/drivers` como ruta pública de producción. Preservar el contrato HTTP/DTO aprobado, FK Race local y sin FK cross-DB Driver; aplicar regla de referencia aprobada.
 - **Dependencias:** PR-08/10, backup, métricas y rollback. **Archivos:** facade/proxy, Compose, schema, e2e/contract tests.
 - **Worker/generación:** UM890, un endpoint por cambio detrás de flag; controller valida schema y destino.
-- **Pruebas/aceptación:** parity, Driver recién creado/desconocido, Registry offline, proyección atrasada, duplicados y retorno de resultados.
+- **Pruebas/aceptación:** compatibilidad de rutas en desarrollo/despliegue, parity de DTO/status/body, Driver recién creado/desconocido, Registry offline, proyección atrasada, duplicados y retorno de resultados.
 - **Docker:** servicios/DB separados, readiness, red mínima, secretos fuera de Git.
 - **Compatibilidad:** rutas/JSON estables; staleness sólo tras aprobar PR-05.
 - **Rollback:** volver a monolith sólo con writes post-cutover reconciliados.
@@ -125,9 +125,11 @@
 
 ## Gates
 
-1. Sin corte hasta pruebas SQL reales de FK, SP y migración.
-2. Sin transferir Drivers hasta definir nombre, disponibilidad y alta reciente.
+1. Sin corte hasta pruebas SQL reales de FK, SP y migración, y matriz HTTP explícita para IDs desconocidos en InMemory/SQL Server.
+2. Sin transferir Drivers hasta definir edición/fusión/borrado, nombre y desempates de resultados, disponibilidad, alta reciente, fallos de proyección/Registry, staleness, autoridad de lectura/escritura y reconciliación de cutover.
 3. Sin elegir broker sin requisitos; ningún evento sin outbox/deduplicación.
 4. Sin tráfico hasta backup, comparación, flag, métricas y rollback ensayado.
 5. Sin separar Analytics sin mediciones.
 6. Cada Micro-PR queda en fork, con SHA exacto, diff acotado y CI; esta fase termina antes de migrar código.
+7. Sin prometer `/api/drivers` ni otra ruta externa hasta definir contrato canónico y gateway/proxy, con pruebas en desarrollo y despliegue.
+8. Caché requiere pruebas distintas para invalidación post-commit fallida y lectura obsoleta; no se considera resuelto al extraer servicios.

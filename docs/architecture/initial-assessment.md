@@ -8,7 +8,7 @@
 
 ## Resumen ejecutivo
 
-El repositorio es un monolito modular pequeño .NET 10. Tiene capas Api, Application, Domain e Infrastructure, con features Drivers, Races y LapTimes; ejecuta un API host, un DbContext y una sola base SQL Server. Los resultados y la vuelta más rápida leen LapTimes y Drivers juntos. Compose crea varios contenedores, pero no servicios autónomos con propiedad de datos.
+El repositorio es un monolito modular pequeño .NET 10. Tiene capas Api, Application, Domain e Infrastructure, con features Drivers, Races y LapTimes; ejecuta un API host y un DbContext. El proveedor predeterminado es EF Core InMemory; SQL Server se selecciona con `Database:Provider=SqlServer`. En ese modo SQL, una sola base aloja las tablas. Los resultados y la vuelta más rápida leen LapTimes y Drivers juntos. Compose crea varios contenedores, pero no servicios autónomos con propiedad de datos.
 
 La recomendación inicial es mantener Race y Timing juntos y conservar Drivers dentro del monolito hasta demostrar una necesidad de ciclo de vida, consumo, despliegue o escala independiente. Driver Registry es candidato futuro, no extracción inmediata. No convertir los proyectos técnicos en microservicios.
 
@@ -61,7 +61,7 @@ En contenedor node:20 ejecuté npm ci, npm run lint y npm run build. Instalació
 | Domain | Driver, Race y LapTime, Value Objects y RaceStatus Scheduled/InProgress/Completed. |
 | Infrastructure | EF Core, un KartingDbContext, repositorios, stored procedures y adapter de IDistributedCache. |
 | HTTP | POST /drivers, POST /races, POST /laptimes, GET /races/{id}/results y GET /races/{id}/fastest-lap. Vite consume /api. |
-| SQL | Una base KartingRaceManagement y tablas Drivers/Races/LapTimes; FK LapTimes→Races/Drivers; índices para race/driver y race/time/lap. Scripts numerados, sin ledger de migraciones visible. |
+| SQL | En el modo SQL Server, una base KartingRaceManagement y tablas Drivers/Races/LapTimes; FK LapTimes→Races/Drivers; índices para race/driver y race/time/lap. El proveedor predeterminado del host es InMemory. Scripts numerados, sin ledger de migraciones visible. |
 | Queries | SP y fallback LINQ unen LapTimes a Drivers y leen Driver.Name en tiempo de consulta. |
 | Cache | Keys por carrera; handler guarda LapTime y luego elimina keys results y fastest-lap, fuera de transacción común. |
 | Mensajería | No hay outbox, bus, publishers ni consumers. |
@@ -70,11 +70,17 @@ En contenedor node:20 ejecuté npm ci, npm run lint y npm run build. Instalació
 
 ### Integridad de las vueltas
 
-CreateLapTimeHandler no invoca IRaceRepository.ExistsAsync ni IDriverRepository.ExistsAsync, aunque los repositorios implementan ExistsAsync. SQL Server hace cumplir ambas referencias mediante FK al guardar. EF InMemory no reproduce esas FK. Al retirar FK_LapTimes_Drivers en una futura separación, hará falta una regla nueva de referencia, explícita y probada; no es simple reubicación de lógica existente.
+CreateLapTimeHandler no invoca IRaceRepository.ExistsAsync ni IDriverRepository.ExistsAsync, aunque los repositorios implementan ExistsAsync. SQL Server hace cumplir ambas referencias mediante FK al guardar; con proveedor InMemory esas FK no existen. En el modo SQL, la violación llega como excepción EF/SQL y el middleware genérico responde 500 `Unexpected error`; no se convierte en el 404 que declara el controller. Antes de retirar FK_LapTimes_Drivers o depender de ella como contrato, definir y probar explícitamente la respuesta HTTP para raceId/driverId desconocidos tanto en InMemory como en SQL Server.
 
 ### Semántica del nombre del piloto
 
-No hay endpoints de edición o borrado de Driver. Los SP sí leen Driver.Name actual al consultar resultados. Falta acordar si una futura edición cambia resultados pasados, si la vuelta guarda snapshot o si se admite propagación eventual. Esta decisión bloquea el corte de ownership de Drivers.
+No hay endpoints de edición o borrado de Driver. Los SP y el fallback LINQ leen Driver.Name actual al consultar resultados; el agrupamiento y orden por nombre hacen que un cambio pueda alterar presentación y desempates. Falta acordar si una futura edición cambia resultados pasados, si la vuelta guarda snapshot o si se admite propagación eventual, cuál lectura es autoritativa durante backfill/cutover y cómo se reconcilia. Esta decisión bloquea el corte de ownership de Drivers.
+
+### Contrato HTTP
+
+Los controllers exponen rutas canónicas `/drivers`, `/races` y `/laptimes` (además de las rutas de consultas de carreras). El prefijo `/api` lo añade el cliente Vite y su proxy de desarrollo lo elimina; no se encontró evidencia de que `/api/drivers` sea una ruta pública estable en despliegue. Antes de prometer compatibilidad, decidir rutas canónicas del host, responsabilidad del gateway/proxy y pruebas de compatibilidad en desarrollo y despliegue.
+
+La caché tiene dos riesgos distintos para cualquier cambio de persistencia/distribución: la invalidación sucede después de `SaveChangesAsync`, sin transacción compartida con el commit; y lecturas ya servidas desde caché pueden quedar obsoletas. El plan debe especificar y probar ambos modos de fallo; separar servicios por sí solo no cierra esa ventana.
 
 ## Propuesta inicial de Luna
 
@@ -85,29 +91,36 @@ No hay endpoints de edición o borrado de Driver. Los SP sí leen Driver.Name ac
 5. Conservar rutas y DTOs mediante el API host/facade durante el encaminamiento gradual. Cambios de consistencia eventual son cambios visibles del contrato y requieren acuerdo.
 6. Separar Results/Analytics sólo si métricas muestran escala, latencia o ciclo de despliegue independiente.
 
+La extracción de Registry queda bloqueada hasta acordar: edición/fusión/borrado de Driver; fuente del nombre y regla de desempate en resultados; aceptación de drivers recién creados aún no proyectados; respuesta cuando Registry está caído, la proyección atrasada o el ID es desconocido; staleness tolerable sin alterar ranking; y transferencia única de autoridad de escritura con política de reconciliación de escrituras concurrentes.
+
 La [guía .NET de soberanía de datos por microservicio](https://learn.microsoft.com/en-us/dotnet/architecture/microservices/architect-microservice-container-applications/data-sovereignty-per-microservice) fundamenta propiedad autónoma. Para eventos, ver [mensajería asíncrona .NET](https://learn.microsoft.com/en-us/dotnet/architecture/microservices/architect-microservice-container-applications/asynchronous-message-based-communication): publicación confiable, outbox, idempotencia y deduplicación. No elegí broker.
 
 ## Consultoría y coordinación
 
 Antes de la aclaración del usuario, se realizó una consulta Sol (gpt-6-sol, medium) mediante delegación interna de Codex. La recomendación fue mantener Race+Timing juntos y condicionar Driver Registry. Se corrigió con código fuente un supuesto del primer mensaje: el handler no llama ExistsAsync; SQL FK garantiza integridad y tests InMemory no lo hacen. Sol confirmó que eliminar la FK exige crear una regla funcional nueva. Valor: identifica el riesgo de integridad y evita describir una validación inexistente.
 
-Esta consulta se hizo fuera de Herdr y cuenta como 1 de las 3 autorizadas; no se repetirá para duplicar la misma respuesta. La guía local Herdr 0.9.5 requiere HERDR_ENV=1 para controlar panes; esta sesión reporta HERDR_ENV ausente. Por ello, no se contactó todavía a Luna ThinkPad ni a Sol/Terra por Herdr. Queda pendiente realizar esa coordinación desde un pane Herdr conforme al esquema del usuario. Inferencia local no usada para generación en esta fase; no hay tokens, energía o memoria de workers medidos.
+La revisión de Luna en ThinkPad se realizó desde Herdr 0.9.5, en el agente existente `luna-pm`, como revisión de sólo lectura del branch público y el baseline exacto `588c220c3142d3261e1cbeb13e916aae0fcd24fe`. No editó ni ejecutó código. Señaló tres correcciones factuales (proveedor SQL no predeterminado, FK inválida termina en 500 en modo SQL, y `/api/drivers` no es ruta canónica demostrada) y tres riesgos (semántica de nombre/resultados durante cutover, dos ventanas de caché, y decisiones de producto/consistencia pendientes). Su recomendación fue añadir una matriz HTTP para IDs desconocidos en ambos proveedores, congelar la especificación de resultados antes de PR-05 y explicitar rutas/gateway antes de PR-11. Confirmó que mantener Race+Timing juntos está bien justificado.
+
+Esta revisión en Herdr completa la coordinación pendiente en el flujo habitual; no se pidió a Sol/Terra por Herdr porque la revisión no dejó una incertidumbre arquitectónica que lo requiriera. La consulta Sol previa cuenta como 1 de las 3 autorizadas y no se repitió. La guía requería acceder al agente remoto por perfil Herdr; el perfil `thinkpad` estaba disponible y respondió. No se generó código con workers locales en esta preparación; no hay tokens, energía o memoria de workers medidos.
 
 ## Cuotas y eficiencia
 
 Consulta real mediante codex app-server account/rateLimits/read. Snapshot inicial de esta preparación: ventana de 5 h 2% usada y semanal 1% usada (98% y 99% disponibles; no se conservó la hora exacta). Snapshot final, 2026-11-13 09:47 UTC: ventana de 5 h 4% usada y semanal 2% usada (96% y 98% disponibles), Plan Plus y ordinaryUsageAllowed=true. Ventanas reportadas: 300 y 10080 minutos. Próximos reinicios reportados por la interfaz: 2026-11-13 13:29 UTC y 2026-11-20 06:56 UTC. Reservas internas: 30% y 40% disponibles; no se alcanzaron. No se inventaron cuotas ni fechas.
 
-Esfuerzo determinista: creación/verificación del fork, revisión de fuente, build/test .NET en SDK 10, npm ci/lint/build/audit y validación Compose. Consultoría costosa: una consulta Sol vía Codex (fuera del flujo Herdr planeado, no se repetirá). Workers locales: no usados en esta fase de diagnóstico/documentación; por ello no hay métricas locales de tokens/energía.
+Esfuerzo determinista: creación/verificación del fork, revisión de fuente, build/test .NET en SDK 10, npm ci/lint/build/audit y validación Compose. Consultoría: una revisión Luna vía Herdr ThinkPad y una consulta Sol vía Codex. Workers locales: no usados para generación en esta fase de diagnóstico/documentación; por ello no hay métricas locales de tokens/energía.
 
 ## Decisiones pendientes
 
 - ¿Se permitirá editar, fusionar o eliminar Driver?
 - ¿Resultados muestran nombre actual, snapshot por vuelta o nombre al terminar carrera?
+- ¿Qué contrato HTTP (status/cuerpo) aplica a raceId/driverId desconocidos en los proveedores InMemory y SQL Server?
 - ¿POST /laptimes acepta inmediatamente un Driver recién creado aunque la proyección todavía no lo conozca?
 - ¿Qué disponibilidad/latencia se necesita para captura de tiempos y consultas?
 - ¿Qué necesidad observable justifica desplegar Driver Registry por separado?
 - ¿Dónde se alojarán los servicios y cómo se operarán secrets, TLS, backups, observabilidad y recuperación?
-- ¿Qué staleness de proyección/cache se acepta?
+- ¿Qué staleness de proyección/cache se acepta, y puede afectar ranking o desempates?
+- ¿Durante backfill/cutover qué fuente es autoritativa para nombres/results y cómo se reconcilian escrituras concurrentes?
+- ¿Las rutas canónicas públicas son `/drivers` o habrá gateway que garantice `/api/drivers`?
 
 ## Estado
 
