@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [development]
+  pull_request:
+    branches: [development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Restore .NET dependencies
+        run: dotnet restore api/Karting.slnx
+
+      - name: Build .NET solution
+        run: dotnet build api/Karting.slnx --configuration Release --no-restore
+
+      - name: Run tests and record TRX
+        shell: bash
+        run: |
+          mkdir -p artifacts/test-results
+          filter='FullyQualifiedName!~Karting.Api.IntegrationTests.SqlServerAggregateFlowTests.AggregateEndpoints_SqlServerProvider_ReturnDeterministicData&FullyQualifiedName!~Karting.Api.IntegrationTests.SqlServerCacheInvalidationTests.LapCreation_AfterCachedReads_RefreshesAggregateResponses'
+          for project in api/test/*/*.csproj; do
+            name="$(basename "$project" .csproj)"
+            dotnet test "$project" --configuration Release --no-build \
+              --filter "$filter" \
+              --logger "trx;LogFileName=${name}.trx" \
+              --results-directory "$PWD/artifacts/test-results"
+          done
+
+      - name: Summarize executed, skipped, failed, and omitted tests
+        if: always()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          import sys
+          import xml.etree.ElementTree as ET
+
+          files = sorted(Path("artifacts/test-results").glob("*.trx"))
+          if not files:
+              print("No TRX results were produced.")
+              with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+                  summary.write("## Test results\n\nNo TRX results were produced.\n")
+              sys.exit(1)
+
+          outcomes = []
+          for file in files:
+              root = ET.parse(file).getroot()
+              outcomes.extend(node.attrib.get("outcome", "Unknown") for node in root.iter()
+                              if node.tag.rsplit("}", 1)[-1] == "UnitTestResult")
+
+          counts = {name: outcomes.count(name) for name in
+                    ("Passed", "Failed", "NotExecuted", "Inconclusive", "Error", "Timeout", "Aborted")}
+          executed = counts["Passed"] + counts["Failed"] + counts["Inconclusive"] + counts["Error"] + counts["Timeout"] + counts["Aborted"]
+          failures = counts["Failed"] + counts["Error"] + counts["Timeout"] + counts["Aborted"]
+          lines = [
+              "## Test results",
+              "",
+              f"- Executed: {executed}",
+              f"- Passed: {counts['Passed']}",
+              f"- Skipped/not executed by the test runner: {counts['NotExecuted']}",
+              f"- Failed/errors/timeouts/aborted: {failures}",
+              "",
+              "### Omitted (SQL opt-in, not run)",
+              "",
+              "- `SqlServerAggregateFlowTests.AggregateEndpoints_SqlServerProvider_ReturnDeterministicData`",
+              "- `SqlServerCacheInvalidationTests.LapCreation_AfterCachedReads_RefreshesAggregateResponses`",
+              "",
+          ]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("\n".join(lines))
+          print("\n".join(lines))
+          if executed == 0 or failures:
+              sys.exit(1)
+          PY
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Validate Docker Compose configuration only
+        env:
+          SA_PASSWORD: CI_CONFIG_ONLY_NOT_A_SECRET_123!
+        run: docker compose --file deployment/docker-compose.yml config --quiet
