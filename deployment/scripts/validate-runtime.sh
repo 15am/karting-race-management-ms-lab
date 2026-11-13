@@ -38,11 +38,14 @@ while IFS= read -r variable; do
 
   value="${line#*=}"
   value="${value%$'\r'}"
+  if [[ "$value" == \"*\" || "$value" == \'*\' ]]; then
+    value="${value:1:${#value}-2}"
+  fi
   [[ -n "${value//[[:space:]]/}" && "$value" != '""' && "$value" != "''" ]] || fail "Required Compose variable $variable is empty."
 
   if [[ "$variable" == "SA_PASSWORD" && "$TEMPLATE_ONLY" == false ]]; then
     case "$value" in
-      LOCAL_ONLY_CHANGE_BEFORE_USE_123!|ChangeThisStrongPassword!123)
+      LOCAL_ONLY_CHANGE_BEFORE_USE_123!*|ChangeThisStrongPassword!123*)
         fail "deployment/.env still uses a documented placeholder for SA_PASSWORD. Set a private value."
         ;;
     esac
