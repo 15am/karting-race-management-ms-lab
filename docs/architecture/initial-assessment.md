@@ -95,7 +95,7 @@ Esta consulta se hizo fuera de Herdr y cuenta como 1 de las 3 autorizadas; no se
 
 ## Cuotas y eficiencia
 
-Consulta real mediante codex app-server account/rateLimits/read. Snapshot registrado al comenzar el análisis: ventana de 5 h 2% usada y semanal 1% usada; por tanto 98% y 99% disponibles. Plan Plus, ordinaryUsageAllowed=true. La respuesta informaba ventanas de 300 y 10080 minutos; el informe final agregará el segundo snapshot. Los umbrales de reserva internos son 30% y 40% disponibles; no se alcanzaron. No se inventan fechas de reinicio.
+Consulta real mediante codex app-server account/rateLimits/read. Snapshot inicial de esta preparación: ventana de 5 h 2% usada y semanal 1% usada (98% y 99% disponibles; no se conservó la hora exacta). Snapshot final, 2026-11-13 09:47 UTC: ventana de 5 h 4% usada y semanal 2% usada (96% y 98% disponibles), Plan Plus y ordinaryUsageAllowed=true. Ventanas reportadas: 300 y 10080 minutos. Próximos reinicios reportados por la interfaz: 2026-11-13 13:29 UTC y 2026-11-20 06:56 UTC. Reservas internas: 30% y 40% disponibles; no se alcanzaron. No se inventaron cuotas ni fechas.
 
 Esfuerzo determinista: creación/verificación del fork, revisión de fuente, build/test .NET en SDK 10, npm ci/lint/build/audit y validación Compose. Consultoría costosa: una consulta Sol vía Codex (fuera del flujo Herdr planeado, no se repetirá). Workers locales: no usados en esta fase de diagnóstico/documentación; por ello no hay métricas locales de tokens/energía.
 
