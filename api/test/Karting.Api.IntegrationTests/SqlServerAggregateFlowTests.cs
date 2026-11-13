@@ -5,14 +5,9 @@ namespace Karting.Api.IntegrationTests;
 
 public sealed class SqlServerAggregateFlowTests
 {
-    [Fact]
+    [SqlServerFact]
     public async Task AggregateEndpoints_SqlServerProvider_ReturnDeterministicData()
     {
-        if (!SqlServerIntegrationSettings.IsEnabled)
-        {
-            return;
-        }
-
         var connectionString = SqlServerIntegrationSettings.GetConnectionString();
         await SqlServerScriptRunner.ApplySqlAssetsAsync(connectionString, CancellationToken.None);
         await SqlServerScriptRunner.ResetRaceDataAsync(connectionString, CancellationToken.None);
