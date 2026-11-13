@@ -1,7 +1,6 @@
 services:
   frontend:
     image: node:20
-    container_name: karting-frontend
     working_dir: /workspace
     command: ["sh", "-c", "npm install && npm run dev -- --host 0.0.0.0 --port 5173"]
     restart: unless-stopped
@@ -24,7 +23,6 @@ services:
 
   api:
     image: mcr.microsoft.com/dotnet/sdk:10.0
-    container_name: karting-api
     working_dir: /workspace/api/src/Karting.Api
     command:
       - sh
@@ -55,7 +53,6 @@ services:
 
   sql-bootstrap:
     image: mcr.microsoft.com/mssql-tools
-    container_name: karting-sql-bootstrap
     restart: "no"
     security_opt:
       - apparmor:unconfined
@@ -85,7 +82,6 @@ services:
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: karting-sqlserver
     restart: unless-stopped
     security_opt:
       - apparmor:unconfined
@@ -93,7 +89,7 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${SA_PASSWORD}
     ports:
-      - "1433:1433"
+      - "${SQLSERVER_HOST_PORT:-1433}:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
       - ./sql:/opt/karting/sql:ro
@@ -104,13 +100,12 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: karting-redis
     restart: unless-stopped
     security_opt:
       - apparmor:unconfined
     command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
     healthcheck:

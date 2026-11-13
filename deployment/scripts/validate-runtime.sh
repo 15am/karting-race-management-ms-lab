@@ -1,55 +1,67 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+umask 077
 
 BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 COMPOSE_FILE="$BASE_DIR/deployment/docker-compose.yml"
 ENV_TEMPLATE="$BASE_DIR/deployment/.env.example"
 ENV_FILE="$BASE_DIR/deployment/.env"
-RENDERED_FILE="/tmp/karting-compose-config.out"
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "docker is required to validate deployment runtime."
+fail() {
+  echo "$1" >&2
   exit 1
+}
+
+command -v docker >/dev/null 2>&1 || fail "docker is required to validate deployment configuration."
+[[ -f "$COMPOSE_FILE" ]] || fail "Missing deployment/docker-compose.yml."
+[[ -f "$ENV_TEMPLATE" ]] || fail "Missing deployment/.env.example."
+
+for asset_dir in schema stored-procedures seed; do
+  [[ -d "$BASE_DIR/deployment/sql/$asset_dir" ]] || fail "Missing deployment/sql/$asset_dir directory."
+done
+
+TEMPLATE_ONLY=false
+if [[ -f "$ENV_FILE" ]]; then
+  ENV_SOURCE="$ENV_FILE"
+else
+  ENV_SOURCE="$ENV_TEMPLATE"
+  TEMPLATE_ONLY=true
 fi
 
-if [[ ! -f "$COMPOSE_FILE" ]]; then
-  echo "Missing compose file: deployment/docker-compose.yml"
-  exit 1
+# Compose variables without defaults are required in the selected env file.
+required_vars="$(grep -Eo '\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$COMPOSE_FILE" | sed 's/^\${//; s/}$//' | sort -u)"
+while IFS= read -r variable; do
+  [[ -n "$variable" ]] || continue
+  line="$(grep -E "^[[:space:]]*${variable}[[:space:]]*=" "$ENV_SOURCE" | tail -n 1 || true)"
+  [[ -n "$line" ]] || fail "Selected env file is missing required Compose variable: $variable."
+
+  value="${line#*=}"
+  value="${value%$'\r'}"
+  if [[ "$value" == \"*\" || "$value" == \'*\' ]]; then
+    value="${value:1:${#value}-2}"
+  fi
+  [[ -n "${value//[[:space:]]/}" && "$value" != '""' && "$value" != "''" ]] || fail "Required Compose variable $variable is empty."
+
+  if [[ "$variable" == "SA_PASSWORD" && "$TEMPLATE_ONLY" == false ]]; then
+    case "$value" in
+      LOCAL_ONLY_CHANGE_BEFORE_USE_123!*|ChangeThisStrongPassword!123*)
+        fail "deployment/.env still uses a documented placeholder for SA_PASSWORD. Set a private value."
+        ;;
+    esac
+  fi
+done <<< "$required_vars"
+
+rendered_file="$(mktemp "${TMPDIR:-/tmp}/karting-compose-config.XXXXXX")"
+trap 'rm -f "$rendered_file"' EXIT
+
+# Render privately to validate interpolation; the resolved config can contain credentials.
+docker compose --env-file "$ENV_SOURCE" --file "$COMPOSE_FILE" config > "$rendered_file"
+
+if [[ "$TEMPLATE_ONLY" == true ]]; then
+  echo "Compose configuration is valid with deployment/.env.example."
+  echo "Template-only check: no real .env was validated; this does not establish runtime readiness."
+else
+  echo "Compose configuration is valid using deployment/.env."
+  echo "No services were started; service readiness was not tested."
 fi
-
-if [[ ! -f "$ENV_TEMPLATE" ]]; then
-  echo "Missing env template: deployment/.env.example"
-  exit 1
-fi
-
-if [[ ! -d "$BASE_DIR/deployment/sql/schema" ]]; then
-  echo "Missing deployment/sql/schema directory."
-  exit 1
-fi
-
-if [[ ! -d "$BASE_DIR/deployment/sql/stored-procedures" ]]; then
-  echo "Missing deployment/sql/stored-procedures directory."
-  exit 1
-fi
-
-if [[ ! -d "$BASE_DIR/deployment/sql/seed" ]]; then
-  echo "Missing deployment/sql/seed directory."
-  exit 1
-fi
-
-if [[ ! -f "$ENV_FILE" ]]; then
-  echo "Missing deployment/.env. Copy deployment/.env.example to deployment/.env first."
-  exit 1
-fi
-
-if grep -Eq '^SA_PASSWORD=ChangeThisStrongPassword!123$' "$ENV_FILE"; then
-  echo "deployment/.env still uses default SA_PASSWORD. Set a strong value before startup."
-  exit 1
-fi
-
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" config > "$RENDERED_FILE"
-
-echo "Compose configuration is valid."
-echo "Rendered output: $RENDERED_FILE"
-echo "Next step: deployment/scripts/apply-sql-scripts.sh"
