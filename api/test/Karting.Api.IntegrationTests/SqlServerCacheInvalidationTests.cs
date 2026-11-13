@@ -5,14 +5,9 @@ namespace Karting.Api.IntegrationTests;
 
 public sealed class SqlServerCacheInvalidationTests
 {
-    [Fact]
+    [SqlServerFact]
     public async Task LapCreation_AfterCachedReads_RefreshesAggregateResponses()
     {
-        if (!SqlServerIntegrationSettings.IsEnabled)
-        {
-            return;
-        }
-
         var connectionString = SqlServerIntegrationSettings.GetConnectionString();
         await SqlServerScriptRunner.ApplySqlAssetsAsync(connectionString, CancellationToken.None);
         await SqlServerScriptRunner.ResetRaceDataAsync(connectionString, CancellationToken.None);
