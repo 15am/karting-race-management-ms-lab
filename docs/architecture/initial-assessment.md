@@ -10,7 +10,7 @@
 
 El repositorio es un monolito modular pequeño .NET 10. Tiene capas Api, Application, Domain e Infrastructure, con features Drivers, Races y LapTimes; ejecuta un API host y un DbContext. El proveedor predeterminado es EF Core InMemory; SQL Server se selecciona con `Database:Provider=SqlServer`. En ese modo SQL, una sola base aloja las tablas. Los resultados y la vuelta más rápida leen LapTimes y Drivers juntos. Compose crea varios contenedores, pero no servicios autónomos con propiedad de datos.
 
-La recomendación inicial es mantener Race y Timing juntos y conservar Drivers dentro del monolito hasta demostrar una necesidad de ciclo de vida, consumo, despliegue o escala independiente. Driver Registry es candidato futuro, no extracción inmediata. No convertir los proyectos técnicos en microservicios.
+El alcance autorizado es preparar y validar el monolito modular, manteniendo Race y Timing juntos y Drivers dentro del monolito. Driver Registry es un experimento de extracción condicionado a una decisión explícita posterior basada en contratos aprobados, propiedad de datos, consistencia y una hipótesis técnica verificable; los PRs de la hoja de ruta no autorizan por sí solos su ejecución. Results/Analytics sólo se separaría si métricas reales justifican la separación y existe autorización explícita. No convertir los proyectos técnicos en microservicios.
 
 ## Fork e aislamiento
 
@@ -86,7 +86,7 @@ La caché tiene dos riesgos distintos para cualquier cambio de persistencia/dist
 
 1. Mantener un modular monolith durante las etapas de preparación.
 2. Competition agrupa ciclo de vida de Race, captura de Timing/LapTime y sus resultados. La FK Race-LapTime y las lecturas agregadas siguen en una propiedad transaccional.
-3. Drivers permanece módulo interno hasta que ciclo de vida, consumidores, escala o despliegue independiente justifiquen su extracción. Hoy sólo hay creación de Driver; el beneficio de separarlo es especulativo.
+3. Drivers permanece módulo interno. Su extracción no está autorizada en esta fase y requeriría una decisión explícita basada en contratos aprobados, propiedad de datos, consistencia y una hipótesis técnica verificable, además de necesidad demostrable. Hoy sólo hay creación de Driver; el beneficio de separarlo es especulativo.
 4. Destino futuro condicional: Driver Registry dueño exclusivo de su DB; Race/Timing dueño de Race, LapTime y consultas. Race/Timing mantiene una proyección local de identidad; ningún servicio consulta tablas ajenas ni crea FK entre bases.
 5. Conservar rutas y DTOs mediante el API host/facade durante el encaminamiento gradual. Cambios de consistencia eventual son cambios visibles del contrato y requieren acuerdo.
 6. Separar Results/Analytics sólo si métricas muestran escala, latencia o ciclo de despliegue independiente.

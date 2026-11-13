@@ -14,9 +14,11 @@ El API expone `/drivers`; `/api` se añade en Vite y se elimina en el proxy de d
 
 ## Decisión
 
-Mantener Drivers, Races y Timing como módulos dentro del mismo deploy mientras se fijan contratos y pruebas. Race y Timing comparten propiedad de datos porque la FK local y las queries de vueltas/resultados dependen de ella.
+**Preparación del monolito modular — autorizada:** mantener Drivers, Races y Timing como módulos dentro del mismo deploy mientras se fijan contratos y pruebas. Race y Timing comparten propiedad de datos porque la FK local y las queries de vueltas/resultados dependen de ella. Este alcance incluye caracterizar el baseline, CI, configuración reproducible y pruebas; no autoriza extraer servicios.
 
-Driver Registry es un candidato futuro, no un servicio que se extrae ya. Extraerlo sólo ante una necesidad demostrada de ciclo de vida, consumidores, despliegue o escala autónoma. Si se hace, Registry será dueño único de Driver y Race/Timing de Race, LapTime y resultados. No habrá tablas compartidas ni FK entre DBs.
+**Driver Registry — experimento condicionado, no autorizado por esta planificación:** sólo considerar extracción ante una decisión explícita basada en contratos aprobados, propiedad de datos, consistencia y una hipótesis técnica verificable, además de necesidad demostrada de ciclo de vida, consumidores, despliegue o escala autónoma. Los PRs posteriores de Registry no se ejecutan automáticamente por aparecer en la hoja de ruta. Si se autoriza, Registry sería dueño único de Driver y Race/Timing de Race, LapTime y resultados. No habría tablas compartidas ni FK entre DBs.
+
+**Results/Analytics — condicional a métricas:** permanece en Competition salvo que métricas observadas justifiquen escala, latencia o ciclo de despliegue independiente y exista autorización explícita para probar la separación.
 
 ## Consecuencias
 
@@ -28,13 +30,13 @@ Driver Registry es un candidato futuro, no un servicio que se extrae ya. Extraer
 - El cutover debe definir autoridad de lectura para Results, momento de efectividad del nombre, agrupamiento/desempates y reconciliación de escrituras concurrentes.
 - La invalidación post-commit y la lectura de caché obsoleta son fallos independientes y requieren aceptación/ensayos separados.
 - El transporte queda sin elegir hasta conocer operación y disponibilidad.
-- Results no será un servicio aparte sin métricas que prueben necesidad.
+- Results no será un servicio aparte sin métricas que prueben necesidad y una decisión explícita.
 
 ## Alternativas consideradas
 
 1. Un servicio por proyecto .NET: rechazado; son capas técnicas, no contextos autónomos.
 2. Race y Timing separados ahora: rechazado; comparten integridad y lectura.
-3. Extraer Driver Registry ahora: aplazado; sólo hay POST de Driver, sin beneficio operacional medido.
+3. Extraer Driver Registry ahora: fuera del alcance autorizado; sólo hay POST de Driver, sin beneficio operacional medido. Requiere decisión posterior explícita.
 4. Mantener monolito como arquitectura cerrada: no adoptado; Registry seguirá como opción ante nueva evidencia.
 
 Reabrir si hay edición/baja de pilotos, nuevos consumidores de identidad, o escala/despliegue distintos. Antes del corte de Drivers, acordar si resultados muestran nombre actual o snapshot, qué pasa con una vuelta mientras se propaga la identidad, qué rutas ofrece el gateway y cómo se comportan fallos/IDs desconocidos.

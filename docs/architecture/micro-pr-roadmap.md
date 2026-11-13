@@ -4,6 +4,8 @@
 **Fork/base:** 15am/karting-race-management-ms-lab, development@588c220c3142d3261e1cbeb13e916aae0fcd24fe.
 **ADR:** [0001 límites y propiedad de datos](../adr/0001-service-boundaries.md).
 
+Esta hoja es una secuencia de propuestas, no autorización automática para ejecutarlas. La preparación del monolito modular (PR-01 a PR-05) está dentro del alcance autorizado. Los PR-06 a PR-12 relacionados con Driver Registry/extracción son experimentos condicionados: requieren una decisión explícita posterior, fundada en contratos aprobados, propiedad de datos, consistencia y una hipótesis técnica verificable. No iniciar ni encadenar esos PRs automáticamente por aparecer aquí. Race y Timing permanecen juntos. PR-13 Results/Analytics sólo se considera si métricas justifican separarlo.
+
 ## Reglas de ejecución
 
 - Todas las ramas/PRs nacen en el fork y apuntan al development del fork. Actualizar origin/development y exigir HEAD == SHA autorizado antes de crear rama.
@@ -23,17 +25,25 @@
 - **Docker:** SQL sólo en job aislado, con project/puerto/volumen propio.
 - **Compatibilidad:** sin cambios API/DB. **Rollback:** revertir workflow/template/docs.
 
-### PR-02 — Pruebas reales de SQL Server
-- **Objetivo/contrato:** probar FK, constraints, SP, ranking, fastest lap e invalidación de caché en SQL real. InMemory queda para unit tests. Definir una matriz de contrato HTTP para `raceId`/`driverId` desconocidos con ambos proveedores antes de depender de la FK; baseline actual no valida existencia en el handler y una violación SQL llega al middleware como 500 `Unexpected error`.
+### PR-02A — Caracterización de referencias inválidas
+- **Objetivo/contrato:** documentar el comportamiento actual sin cambiar producción: comprobar FK/constraints y excepciones en SQL Server; comprobar el comportamiento de EF InMemory; registrar las respuestas HTTP actuales para `raceId`/`driverId` desconocidos. El baseline no valida existencia en el handler y una violación SQL llega al middleware como 500 `Unexpected error`.
 - **Dependencias:** PR-01 o fixture efímera equivalente. **Archivos:** Karting.Api.IntegrationTests, SQL scripts y fixture.
-- **Worker/generación:** UM890 genera un escenario por cambio; controller valida IDs y destino.
-- **Pruebas/aceptación:** IDs válidos pasan; casos desconocidos y status/body quedan definidos y probados en InMemory y SQL Server; verificar explícitamente la excepción SQL/FK y el mapeo HTTP elegido; SP y contrato coinciden; prueba muestra ejecución real.
+- **Worker/generación:** UM890 genera escenarios de caracterización; controller verifica que no haya cambios en handlers, middleware ni contratos de producción.
+- **Pruebas/aceptación:** resultados actuales de ambos proveedores quedan documentados; la evidencia distingue pruebas SQL realmente ejecutadas de omitidas/no habilitadas; InMemory no se usa como evidencia de FK SQL. Sin cambiar comportamiento productivo.
 - **Docker:** SQL efímero, sin volumen persistente/puerto compartido.
-- **Compatibilidad:** sólo mejora evidencia. **Rollback:** quitar fixture si CI no puede provisionar, mantener unit tests.
+- **Compatibilidad:** sólo añade caracterización. **Rollback:** quitar fixture si CI no puede provisionar, conservar las pruebas unitarias.
+
+### PR-02B — Contrato HTTP para referencias inválidas
+- **Objetivo/contrato:** implementar el status/body funcional aprobado para `raceId`/`driverId` desconocidos y mantener consistencia entre InMemory y SQL Server. No tratar una nueva respuesta como corrección técnica implícita: requiere decisión explícita de producto/API después de revisar PR-02A.
+- **Dependencias:** PR-02A y aprobación explícita del contrato. **Archivos:** handlers/validadores/middleware sólo según decisión, API contract tests.
+- **Worker/generación:** UM890 propone cambios pequeños dentro de archivos autorizados; controller comprueba que coincidan con la decisión aprobada.
+- **Pruebas/aceptación:** contrato status/body aprobado y probado con ambos proveedores; compatibilidad documentada; fallo SQL real y comportamiento InMemory cubiertos.
+- **Docker:** fixture SQL efímera aislada.
+- **Compatibilidad:** puede cambiar respuesta HTTP sólo con aprobación expresa. **Rollback:** revertir implementación/tests si no se acepta el nuevo contrato.
 
 ### PR-03 — Redis y errores tras commit
 - **Objetivo/contrato:** decidir usar Redis o retirarlo del Compose. Si se conserva, registrar su provider y probarlo; tratar por separado (a) SQL commit exitoso seguido de fallo de invalidación y (b) lecturas obsoletas ya presentes en caché. Definir respuesta/reintento sin duplicar escrituras y estrategia de consistencia para ambas ventanas; el estado actual invalida después de `SaveChangesAsync` sin transacción común.
-- **Dependencias:** PR-01/02. **Archivos:** Program/Infrastructure DI, csproj, Compose, handlers/tests.
+- **Dependencias:** PR-01/02A; PR-02B sólo si la decisión de producto requiere cambios conjuntos. **Archivos:** Program/Infrastructure DI, csproj, Compose, handlers/tests.
 - **Worker/generación:** UM890 propone cambios DI y test limitados; controller comprueba provider efectivo y efecto del fallo.
 - **Pruebas/aceptación:** hit/miss, cada ventana de fallo, invalidación, Redis apagado y persistencia real comprobados.
 - **Docker:** Redis efímero con healthcheck y project isolation, si se retiene.
@@ -41,7 +51,7 @@
 
 ### PR-04 — Fronteras modulares en proceso
 - **Objetivo/contrato:** formalizar Drivers y Competition (Race+Timing) dentro del mismo host y DB, sin distribución.
-- **Dependencias:** PR-02/03. **Archivos:** Application features, ports, DI, architecture tests, OpenAPI contracts.
+- **Dependencias:** PR-01/02A/02B/03. **Archivos:** Application features, ports, DI, architecture tests, OpenAPI contracts.
 - **Worker/generación:** UM890 para movimientos pequeños, UM870 para tests simples; controller valida renames y dependencias, no regenera árboles.
 - **Pruebas/aceptación:** Domain no depende de Infrastructure, ownership de acceso testeado, API/OpenAPI estable.
 - **Docker:** ninguno nuevo.
@@ -49,13 +59,14 @@
 
 ### PR-05 — Contrato de Driver/Timing y nombres
 - **Objetivo/contrato:** especificar nombre (actual o snapshot y cuándo), agrupamiento/desempate de resultados, alta reciente, ID desconocido, Registry caído, disponibilidad, staleness tolerable y si la proyección puede afectar ranking. Determinar autoridad de lectura durante backfill/cutover y reconciliación de escrituras concurrentes.
-- **Dependencias:** PR-02/04 y decisión producto/operación. **Archivos:** ADR, API contract tests y docs.
+- **Dependencias:** PR-02A/02B/04 y decisión producto/operación. **Archivos:** ADR, API contract tests y docs.
 - **Worker/generación:** Luna coordina; UM870 sólo genera casos tras cerrar reglas.
 - **Pruebas/aceptación:** matriz status/body/retry por proveedor y fallos de Registry; identidad, nombre, agrupamiento, desempates y autoridad durante cutover quedan precisos y probados tanto en stored procedure como fallback LINQ.
 - **Docker:** ninguno.
 - **Compatibilidad:** todo cambio observable se aprueba antes. **Rollback:** sólo docs/tests hasta decisión.
 
 ### PR-06 — Outbox local y evento versionado
+- **Ejecución condicionada:** no iniciar sin la decisión explícita de extracción descrita al inicio de esta hoja y en ADR-0001.
 - **Objetivo/contrato:** si se decide extraer Registry, persistir DriverRegistered/cambios permitidos en misma transacción; event ID, schema version y ordering key explícitos.
 - **Dependencias:** PR-05 y SQL tests. **Archivos:** tabla outbox, Application/Infrastructure, SQL scripts/tests.
 - **Worker/generación:** UM890, un evento por intento; controller verifica hashes y schema aditivo/versionado.
@@ -64,6 +75,7 @@
 - **Compatibilidad:** HTTP sin cambio. **Rollback:** apagar escritor; tabla nueva vacía puede permanecer.
 
 ### PR-07 — Transporte de eventos
+- **Ejecución condicionada:** requiere autorización explícita del experimento de extracción y los gates previos; esta secuencia no la concede por sí sola.
 - **Objetivo/contrato:** elegir sólo tras fijar durabilidad, latencia, volumen, disponibilidad, entorno y operación.
 - **Dependencias:** PR-06 y requisitos de deployment. **Archivos:** ADR, publisher adapter, Compose y runbook.
 - **Worker/generación:** UM890 en adapter acotado; Sol/Terra por Herdr sólo ante incertidumbre arquitectónica material, no rutina.
@@ -72,6 +84,7 @@
 - **Compatibilidad:** HTTP intacto. **Rollback:** outbox sobrevive con publisher apagado.
 
 ### PR-08 — Proyección local de identidad
+- **Ejecución condicionada:** requiere autorización explícita del experimento de extracción y los gates previos; esta secuencia no la concede por sí sola.
 - **Objetivo/contrato:** Race/Timing mantiene en su DB el mínimo de identidad necesario para lecturas; consumo idempotente y reconciliable.
 - **Dependencias:** PR-05/06/07. **Archivos:** schema de proyección, consumer, query ports y tests.
 - **Worker/generación:** UM890; controller separa schema/consumer/query.
@@ -81,6 +94,7 @@
 - **Rollback:** mantener lectura anterior hasta comparación; nuevo path tras feature flag.
 
 ### PR-09 — Driver Registry y DB propia
+- **Ejecución condicionada:** requiere decisión explícita basada en contratos aprobados, propiedad de datos, consistencia e hipótesis técnica verificable. No iniciar automáticamente.
 - **Objetivo/contrato:** proceso autónomo, único dueño de Drivers, health/readiness y config aislada.
 - **Dependencias:** PR-01/04/05/06/07/08. **Archivos:** API/persistence nuevas, DI/tests, Compose/OpenAPI.
 - **Worker/generación:** UM890; skeleton, API y storage en PRs separados y prompts de un handler/archivo.
@@ -89,6 +103,7 @@
 - **Compatibilidad:** sin tráfico hasta cutover. **Rollback:** apagar perfil; monolith conserva autoridad.
 
 ### PR-10 — Backfill y transferencia de autoridad
+- **Ejecución condicionada:** requiere autorización explícita del experimento de extracción, además de ensayo, backup y gates previos.
 - **Objetivo/contrato:** preservar IDs, reconciliar counts/hashes y resolver eventos concurrentes; Registry queda como único writer.
 - **Dependencias:** PR-09, backup y ensayo. **Archivos:** scripts/tooling y runbook.
 - **Worker/generación:** UM890 crea herramienta idempotente; controller corre sólo dry-run/fixtures antes de operación autorizada.
@@ -98,6 +113,7 @@
 - **Rollback:** antes de nuevos writes se vuelve; después se requiere replay/freeze/reconciliación, no cambiar DNS solamente.
 
 ### PR-11 — Compatibilidad HTTP y cutover
+- **Ejecución condicionada:** requiere autorización explícita del experimento de extracción y decisión del contrato público; no se deriva de completar PR-01 a PR-10.
 - **Objetivo/contrato:** fijar rutas canónicas y papel del gateway/proxy antes de enrutar a Registry. El baseline expone `/drivers`; `/api` lo antepone el cliente Vite y el proxy de desarrollo lo elimina; no se ha demostrado `/api/drivers` como ruta pública de producción. Preservar el contrato HTTP/DTO aprobado, FK Race local y sin FK cross-DB Driver; aplicar regla de referencia aprobada.
 - **Dependencias:** PR-08/10, backup, métricas y rollback. **Archivos:** facade/proxy, Compose, schema, e2e/contract tests.
 - **Worker/generación:** UM890, un endpoint por cambio detrás de flag; controller valida schema y destino.
@@ -107,6 +123,7 @@
 - **Rollback:** volver a monolith sólo con writes post-cutover reconciliados.
 
 ### PR-12 — Observabilidad y retirada legacy
+- **Ejecución condicionada:** sólo después de una extracción/cutover autorizados explícitamente.
 - **Objetivo/contrato:** medir errors, latency, outbox age, projection lag, cache invalidation y discrepancias; retirar legacy tras probar que no recibe tráfico.
 - **Dependencias:** PR-11 estable durante periodo acordado. **Archivos:** logs/health/dashboards, scripts/docs.
 - **Worker/generación:** UM870 para docs/telemetría; UM890 para integración, separar PRs.
@@ -115,6 +132,7 @@
 - **Compatibilidad:** API igual. **Rollback:** backup/rehidratación probados antes de borrar fallback.
 
 ### PR-13 — Results/Analytics opcional
+- **Ejecución condicionada:** separar sólo si métricas observadas justifican el servicio independiente y existe autorización explícita.
 - **Objetivo/contrato:** sólo si mediciones prueban escala/latencia propia; read model con DB propia sin consultas a Competition.
 - **Dependencias:** PR-07/08/12 y umbral aprobado. **Archivos:** servicio read model, consumer, DB, contract/tests.
 - **Worker/generación:** UM890; no generar hasta ADR y objetivo cuantitativo.
@@ -130,6 +148,8 @@
 3. Sin elegir broker sin requisitos; ningún evento sin outbox/deduplicación.
 4. Sin tráfico hasta backup, comparación, flag, métricas y rollback ensayado.
 5. Sin separar Analytics sin mediciones.
-6. Cada Micro-PR queda en fork, con SHA exacto, diff acotado y CI; esta fase termina antes de migrar código.
+6. Cada Micro-PR queda en fork, con SHA exacto, diff acotado y CI. La preparación del monolito modular está autorizada; estos gates no autorizan extracción.
 7. Sin prometer `/api/drivers` ni otra ruta externa hasta definir contrato canónico y gateway/proxy, con pruebas en desarrollo y despliegue.
 8. Caché requiere pruebas distintas para invalidación post-commit fallida y lectura obsoleta; no se considera resuelto al extraer servicios.
+9. PR-06 a PR-12 no se inician en secuencia automática: primero decisión explícita de extracción con contratos aprobados, ownership, consistencia e hipótesis técnica verificable. Race y Timing siguen juntos.
+10. Results/Analytics permanece dentro de Competition salvo evidencia métrica que justifique separarlo y autorización explícita.
